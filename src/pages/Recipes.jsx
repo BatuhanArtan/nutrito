@@ -32,6 +32,7 @@ export default function Recipes() {
 
   const [categoryName, setCategoryName] = useState('')
   const [categoryColor, setCategoryColor] = useState('#e07a5f')
+  const [addingCategoryForRecipe, setAddingCategoryForRecipe] = useState(false)
 
   const filteredRecipes = useMemo(() => {
     return recipes.filter((recipe) => {
@@ -89,7 +90,7 @@ export default function Recipes() {
     e.preventDefault()
     if (!categoryName.trim()) return
 
-    await addRecipeCategory({
+    const newCategory = await addRecipeCategory({
       name: categoryName.trim(),
       color: categoryColor
     })
@@ -97,6 +98,20 @@ export default function Recipes() {
     setCategoryName('')
     setCategoryColor('#e07a5f')
     setShowCategoryModal(false)
+    if (addingCategoryForRecipe && newCategory) {
+      setRecipeCategory(newCategory.id)
+      setAddingCategoryForRecipe(false)
+    }
+  }
+
+  const openNewCategoryFromRecipe = () => {
+    setAddingCategoryForRecipe(true)
+    setShowCategoryModal(true)
+  }
+
+  const closeCategoryModal = () => {
+    setShowCategoryModal(false)
+    setAddingCategoryForRecipe(false)
   }
 
   const handleDeleteCategory = async (id) => {
@@ -319,13 +334,24 @@ export default function Recipes() {
             placeholder="örn: Yoğurtlu Salata"
             autoFocus
           />
-          <Select
-            label="Kategori"
-            value={recipeCategory}
-            onChange={setRecipeCategory}
-            options={recipeCategories.map((c) => ({ value: c.id, label: c.name }))}
-            placeholder="Kategori seçin (opsiyonel)"
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+              <label className="text-sm text-[var(--text-secondary)]">Kategori</label>
+              <button
+                type="button"
+                onClick={openNewCategoryFromRecipe}
+                className="text-sm text-[var(--accent)] hover:underline"
+              >
+                + Yeni kategori
+              </button>
+            </div>
+            <Select
+              value={recipeCategory}
+              onChange={setRecipeCategory}
+              options={recipeCategories.map((c) => ({ value: c.id, label: c.name }))}
+              placeholder="Kategori seçin (opsiyonel)"
+            />
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label className="text-sm text-[var(--text-secondary)]">Malzemeler</label>
             <textarea
@@ -368,7 +394,7 @@ export default function Recipes() {
 
       <Modal
         isOpen={showCategoryModal}
-        onClose={() => setShowCategoryModal(false)}
+        onClose={closeCategoryModal}
         title="Yeni Kategori"
       >
         <form onSubmit={handleAddCategory} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

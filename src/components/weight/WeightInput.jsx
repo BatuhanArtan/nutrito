@@ -15,11 +15,10 @@ export default function WeightInput({ date }) {
     const existingLog = weightLogs.find((l) => l.date === date)
     if (existingLog) {
       setWeight(existingLog.weight.toString())
-      setSaved(true)
     } else {
       setWeight('')
-      setSaved(false)
     }
+    setSaved(false)
   }, [date, weightLogs])
 
   const handleSubmit = async (e) => {
@@ -70,7 +69,7 @@ export default function WeightInput({ date }) {
               disabled={!weight || saved}
               className="px-7 h-12 shrink-0 min-w-[7rem]"
             >
-              {saved ? <Check size={18} /> : 'Kaydet'}
+              {saved ? <Check size={18} /> : (weightLogs.some((l) => l.date === date) ? 'Güncelle' : 'Kaydet')}
             </Button>
           </div>
 
