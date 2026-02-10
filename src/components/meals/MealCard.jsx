@@ -23,6 +23,7 @@ const mealColors = {
 export default function MealCard({ date, mealType, title }) {
   const [showAddModal, setShowAddModal] = useState(false)
 
+  useAppStore((state) => state.mealItems)
   const getMealItemsForMeal = useAppStore((state) => state.getMealItemsForMeal)
   const mealItems = getMealItemsForMeal(date, mealType)
 

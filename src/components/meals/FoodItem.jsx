@@ -22,22 +22,30 @@ export default function FoodItem({ item }) {
         style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
       >
         <button
+          type="button"
           onClick={() => setShowExchangeModal(true)}
-          className="flex items-center gap-2 text-left flex-1 hover:text-[var(--accent)] transition-colors min-w-0"
+          className="flex items-center gap-2 text-left flex-1 hover:text-[var(--text-primary)] transition-colors min-w-0 overflow-hidden"
+          style={{ minWidth: 0 }}
         >
-          <span className="text-sm text-[var(--text-primary)]">
+          <span className="text-sm text-[var(--text-primary)] truncate">
             {item.quantity} {unitName} {displayName}
           </span>
           {item.food && (
-            <ArrowLeftRight size={14} className="text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ArrowLeftRight size={14} className="text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
           )}
         </button>
 
         <Button
+          type="button"
           variant="ghost"
           size="icon"
-          onClick={handleDelete}
-          className="opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            handleDelete()
+          }}
+          className="flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
+          style={{ position: 'relative', zIndex: 1 }}
         >
           <Trash2 size={14} className="text-red-400" />
         </Button>
