@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react'
 import useAppStore from '../stores/appStore'
+import { DEFAULT_UNIT_IDS, DEFAULT_UNITS } from '../lib/utils'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
@@ -10,6 +11,7 @@ export default function Units() {
   const addUnit = useAppStore((state) => state.addUnit)
   const updateUnit = useAppStore((state) => state.updateUnit)
   const deleteUnit = useAppStore((state) => state.deleteUnit)
+  const canDeleteUnit = (id) => !DEFAULT_UNIT_IDS.has(id)
 
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -140,13 +142,15 @@ export default function Units() {
                     >
                       <Edit2 size={16} />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(unit.id)}
-                    >
-                      <Trash2 size={16} className="text-red-400" />
-                    </Button>
+                    {canDeleteUnit(unit.id) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(unit.id)}
+                      >
+                        <Trash2 size={16} className="text-red-400" />
+                      </Button>
+                    )}
                   </div>
                 </li>
               ))}
@@ -161,16 +165,16 @@ export default function Units() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-[var(--text-secondary)] mb-3">
-            Diyetisyen listenizde sık kullanılan birimler:
+            Diyetisyen listenizde sık kullanılan birimler (varsayılan, kaldırılamaz):
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {['Bardak', 'Yemek Kaşığı (yk)', 'Tatlı Kaşığı (tk)', 'Çay Kaşığı (çk)', 'Kase', 'Adet', 'Avuç', 'Gram', 'Dilim', 'Porsiyon'].map((u) => (
+            {DEFAULT_UNITS.map((u) => (
               <span
-                key={u}
+                key={u.id}
                 className="bg-[var(--bg-tertiary)] rounded-full text-sm text-[var(--text-secondary)]"
                 style={{ paddingLeft: '0.875rem', paddingRight: '0.875rem', paddingTop: '0.375rem', paddingBottom: '0.375rem' }}
               >
-                {u}
+                {u.abbreviation ? `${u.name} (${u.abbreviation})` : u.name}
               </span>
             ))}
           </div>

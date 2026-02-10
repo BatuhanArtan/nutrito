@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
-import { getToday, generateId } from '../lib/utils'
+import { getToday, generateId, toDateStr, DEFAULT_UNITS, DEFAULT_UNIT_IDS } from '../lib/utils'
 
 const useAppStore = create(
   persist(
@@ -10,8 +10,8 @@ const useAppStore = create(
       currentDate: getToday(),
       setCurrentDate: (date) => set({ currentDate: date }),
 
-      // Units
-      units: [],
+      // Units (varsayılan birimlerle başlar)
+      units: [...DEFAULT_UNITS],
       setUnits: (units) => set({ units }),
 
       // Foods
@@ -88,7 +88,7 @@ const useAppStore = create(
           ])
 
           set({
-            units: units || [],
+            units: (units?.length ? units : DEFAULT_UNITS),
             foods: foods || [],
             exchanges: exchanges || [],
             recipes: recipes || [],
@@ -132,6 +132,7 @@ const useAppStore = create(
       },
 
       deleteUnit: async (id) => {
+        if (DEFAULT_UNIT_IDS.has(id)) return
         set((state) => ({ units: state.units.filter(u => u.id !== id) }))
 
         if (isSupabaseConfigured()) {
@@ -259,10 +260,11 @@ const useAppStore = create(
       // Daily Meals
       getOrCreateDailyMeal: async (date, mealType) => {
         const { dailyMeals } = get()
-        let meal = dailyMeals.find(m => m.date === date && m.meal_type === mealType)
+        const dateNorm = toDateStr(date)
+        let meal = dailyMeals.find(m => toDateStr(m.date) === dateNorm && m.meal_type === mealType)
 
         if (!meal) {
-          meal = { id: generateId(), date, meal_type: mealType, created_at: new Date().toISOString() }
+          meal = { id: generateId(), date: dateNorm || date, meal_type: mealType, created_at: new Date().toISOString() }
           set((state) => ({ dailyMeals: [...state.dailyMeals, meal] }))
 
           if (isSupabaseConfigured()) {
@@ -306,6 +308,42 @@ const useAppStore = create(
           const { error } = await supabase.from('meal_items').delete().eq('id', id)
           if (error) console.error('Error deleting meal item:', error)
         }
+      },
+
+      copyMealsFromDate: async (sourceDate, targetDate) => {
+        const { dailyMeals, mealItems, getOrCreateDailyMeal, addMealItem, deleteMealItem } = get()
+        const src = toDateStr(sourceDate)
+        const tgt = toDateStr(targetDate)
+        const mealTypes = ['breakfast', 'lunch', 'snack', 'dinner']
+
+        const targetMeals = dailyMeals.filter(m => toDateStr(m.date) === tgt)
+        const targetMealIds = new Set(targetMeals.map(m => m.id))
+        const idsToRemove = mealItems
+          .filter(i => targetMealIds.has(i.daily_meal_id))
+          .map(i => i.id)
+        for (const id of idsToRemove) {
+          await deleteMealItem(id)
+        }
+
+        const { mealItems: itemsAfterClear } = get()
+        let copied = 0
+        for (const mealType of mealTypes) {
+          const sourceMeal = dailyMeals.find(m => toDateStr(m.date) === src && m.meal_type === mealType)
+          if (!sourceMeal) continue
+          const items = itemsAfterClear.filter(i => i.daily_meal_id === sourceMeal.id)
+          const targetMeal = await getOrCreateDailyMeal(tgt, mealType)
+          for (const item of items) {
+            await addMealItem({
+              daily_meal_id: targetMeal.id,
+              food_id: item.food_id || null,
+              recipe_id: item.recipe_id || null,
+              quantity: item.quantity,
+              unit_id: item.unit_id || null
+            })
+            copied++
+          }
+        }
+        return copied
       },
 
       // Water Logs
@@ -410,7 +448,8 @@ const useAppStore = create(
       // Get meal items for a specific date and meal type
       getMealItemsForMeal: (date, mealType) => {
         const { dailyMeals, mealItems, foods, recipes, units } = get()
-        const meal = dailyMeals.find(m => m.date === date && m.meal_type === mealType)
+        const dateNorm = toDateStr(date)
+        const meal = dailyMeals.find(m => toDateStr(m.date) === dateNorm && m.meal_type === mealType)
 
         if (!meal) return []
 
@@ -427,7 +466,7 @@ const useAppStore = create(
     {
       name: 'nutrito-storage',
       partialize: (state) => ({
-        units: state.units,
+        units: state.units?.length ? state.units : DEFAULT_UNITS,
         foods: state.foods,
         exchanges: state.exchanges,
         recipes: state.recipes,
@@ -438,6 +477,11 @@ const useAppStore = create(
         weightLogs: state.weightLogs,
         waterTargetDefault: state.waterTargetDefault,
         waterGlassVolumeMl: state.waterGlassVolumeMl
+      }),
+      merge: (persisted, current) => ({
+        ...current,
+        ...persisted,
+        units: persisted?.units?.length ? persisted.units : (current.units || DEFAULT_UNITS)
       })
     }
   )
