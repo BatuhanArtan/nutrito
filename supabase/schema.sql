@@ -17,15 +17,21 @@ CREATE TABLE IF NOT EXISTS foods (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Food Exchanges (Değişimler - 1 bardak ayran = 4 yk yoğurt gibi)
+-- Food Exchanges (Değişimler - sol birim+miktar = sağ birim+miktar, tersinir)
 CREATE TABLE IF NOT EXISTS food_exchanges (
   id TEXT PRIMARY KEY,
   food_id TEXT NOT NULL REFERENCES foods(id) ON DELETE CASCADE,
+  quantity_left DECIMAL DEFAULT 1 NOT NULL,
+  left_unit_id TEXT REFERENCES units(id) ON DELETE SET NULL,
   equivalent_food_id TEXT NOT NULL REFERENCES foods(id) ON DELETE CASCADE,
   quantity DECIMAL NOT NULL,
   unit_id TEXT REFERENCES units(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Mevcut tabloya yeni kolonlar eklemek için (zaten varsa atla):
+-- ALTER TABLE food_exchanges ADD COLUMN IF NOT EXISTS quantity_left DECIMAL DEFAULT 1;
+-- ALTER TABLE food_exchanges ADD COLUMN IF NOT EXISTS left_unit_id TEXT REFERENCES units(id) ON DELETE SET NULL;
 
 -- Recipe Categories (Tarif kategorileri)
 CREATE TABLE IF NOT EXISTS recipe_categories (

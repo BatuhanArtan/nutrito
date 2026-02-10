@@ -175,7 +175,13 @@ const useAppStore = create(
 
       // Food Exchanges
       addExchange: async (exchange) => {
-        const newExchange = { ...exchange, id: generateId(), created_at: new Date().toISOString() }
+        const newExchange = {
+          ...exchange,
+          quantity_left: exchange.quantity_left ?? 1,
+          left_unit_id: exchange.left_unit_id || null,
+          id: generateId(),
+          created_at: new Date().toISOString()
+        }
         set((state) => ({ exchanges: [...state.exchanges, newExchange] }))
 
         if (isSupabaseConfigured()) {
@@ -370,20 +376,35 @@ const useAppStore = create(
         }
       },
 
-      // Get exchanges for a specific food
+      // Get exchanges for a specific food (hem giden hem gelen / tersinir)
       getExchangesForFood: (foodId) => {
         const { exchanges, foods, units } = get()
-        return exchanges
-          .filter(e => e.food_id === foodId)
-          .map(e => {
-            const equivalentFood = foods.find(f => f.id === e.equivalent_food_id)
-            const unit = units.find(u => u.id === e.unit_id)
-            return {
-              ...e,
-              equivalentFood,
-              unit
-            }
+        const getUnit = (id) => (id ? units.find(u => u.id === id) : null)
+        const getFood = (id) => foods.find(f => f.id === id)
+        const result = []
+        exchanges.filter(e => e.food_id === foodId).forEach(e => {
+          result.push({
+            id: e.id,
+            leftQuantity: e.quantity_left ?? 1,
+            leftUnit: getUnit(e.left_unit_id),
+            rightQuantity: e.quantity,
+            rightUnit: getUnit(e.unit_id),
+            leftFood: getFood(e.food_id),
+            rightFood: getFood(e.equivalent_food_id)
           })
+        })
+        exchanges.filter(e => e.equivalent_food_id === foodId).forEach(e => {
+          result.push({
+            id: e.id,
+            leftQuantity: e.quantity,
+            leftUnit: getUnit(e.unit_id),
+            rightQuantity: e.quantity_left ?? 1,
+            rightUnit: getUnit(e.left_unit_id),
+            leftFood: getFood(e.equivalent_food_id),
+            rightFood: getFood(e.food_id)
+          })
+        })
+        return result
       },
 
       // Get meal items for a specific date and meal type

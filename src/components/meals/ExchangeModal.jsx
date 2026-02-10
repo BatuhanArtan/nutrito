@@ -30,7 +30,7 @@ export default function ExchangeModal({ isOpen, onClose, foodId, foodName }) {
         ) : (
           <>
             <p className="text-sm text-[var(--text-secondary)]" style={{ marginBottom: '0' }}>
-              1 porsiyon {foodName} yerine şunları kullanabilirsiniz:
+              {foodName} ile eşdeğer değişimler:
             </p>
 
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0 }}>
@@ -42,7 +42,9 @@ export default function ExchangeModal({ isOpen, onClose, foodId, foodName }) {
                 >
                   <ArrowRight size={14} className="text-[var(--accent)] flex-shrink-0" />
                   <span className="text-[var(--text-primary)]">
-                    {exchange.quantity} {exchange.unit?.abbreviation || exchange.unit?.name} {exchange.equivalentFood?.name}
+                    {exchange.leftQuantity} {exchange.leftUnit?.name || exchange.leftUnit?.abbreviation || 'porsiyon'} {exchange.leftFood?.name}
+                    {' = '}
+                    {exchange.rightQuantity} {exchange.rightUnit?.name || exchange.rightUnit?.abbreviation || 'porsiyon'} {exchange.rightFood?.name}
                   </span>
                 </li>
               ))}
