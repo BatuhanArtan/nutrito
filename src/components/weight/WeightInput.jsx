@@ -57,7 +57,8 @@ export default function WeightInput({ date }) {
                 placeholder={lastWeight ? `Son: ${lastWeight} kg` : 'Kilonuzu girin'}
                 step="0.1"
                 min="0"
-                className="h-12 w-full bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg pl-4 pr-11 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-[var(--accent)] transition-colors"
+                className="h-12 w-full bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg pr-11 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-[var(--accent)] transition-colors"
+                style={{ paddingLeft: '1.125rem' }}
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] text-sm">
                 kg

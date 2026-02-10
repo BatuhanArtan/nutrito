@@ -72,14 +72,14 @@ export default function WeightChart() {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="flex flex-wrap gap-3">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
           {timeRanges.map((range) => (
             <Button
               key={range.days}
               variant={selectedRange === range.days ? 'primary' : 'secondary'}
               size="sm"
               onClick={() => setSelectedRange(range.days)}
-              className="px-4 py-2.5"
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.625rem', paddingBottom: '0.625rem' }}
             >
               {range.label}
             </Button>
