@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Droplets, Plus, Minus } from 'lucide-react'
 import useAppStore from '../../stores/appStore'
 import Card, { CardHeader, CardTitle, CardContent } from '../ui/Card'
@@ -8,36 +8,27 @@ export default function WaterTracker({ date }) {
   const waterLogs = useAppStore((state) => state.waterLogs)
   const getOrCreateWaterLog = useAppStore((state) => state.getOrCreateWaterLog)
   const updateWaterLog = useAppStore((state) => state.updateWaterLog)
-
-  const [waterLog, setWaterLog] = useState(null)
+  const waterTargetDefault = useAppStore((state) => state.waterTargetDefault)
+  const waterGlassVolumeMl = useAppStore((state) => state.waterGlassVolumeMl)
 
   useEffect(() => {
-    const loadWaterLog = async () => {
-      const log = await getOrCreateWaterLog(date)
-      setWaterLog(log)
-    }
-    loadWaterLog()
+    getOrCreateWaterLog(date)
   }, [date, getOrCreateWaterLog])
 
-  useEffect(() => {
-    const log = waterLogs.find((l) => l.date === date)
-    if (log) setWaterLog(log)
-  }, [waterLogs, date])
-
-  const glasses = waterLog?.glasses || 0
-  const target = waterLog?.target || 8
+  const log = waterLogs.find((l) => l.date === date)
+  const glasses = log?.glasses ?? 0
+  const target = waterTargetDefault ?? 8
+  const volumeMl = waterGlassVolumeMl ?? 200
+  const totalL = (glasses * volumeMl) / 1000
+  const targetL = (target * volumeMl) / 1000
 
   const handleIncrement = async () => {
-    const newGlasses = glasses + 1
-    setWaterLog((prev) => ({ ...prev, glasses: newGlasses }))
-    await updateWaterLog(date, { glasses: newGlasses })
+    await updateWaterLog(date, { glasses: glasses + 1 })
   }
 
   const handleDecrement = async () => {
     if (glasses <= 0) return
-    const newGlasses = glasses - 1
-    setWaterLog((prev) => ({ ...prev, glasses: newGlasses }))
-    await updateWaterLog(date, { glasses: newGlasses })
+    await updateWaterLog(date, { glasses: glasses - 1 })
   }
 
   const percentage = Math.min((glasses / target) * 100, 100)
@@ -101,6 +92,10 @@ export default function WaterTracker({ date }) {
             <Plus size={18} />
           </Button>
         </div>
+
+        <p className="text-center text-sm text-[var(--text-secondary)] mt-2">
+          Hedef: {target} bardak ({targetL.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} L)
+        </p>
 
         <div className="flex flex-wrap justify-center gap-1 mt-4">
           {Array.from({ length: target }).map((_, index) => (

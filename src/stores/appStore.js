@@ -46,6 +46,12 @@ const useAppStore = create(
       weightLogs: [],
       setWeightLogs: (logs) => set({ weightLogs: logs }),
 
+      // Su ayarları (persist)
+      waterTargetDefault: 8,
+      setWaterTargetDefault: (n) => set({ waterTargetDefault: Math.max(1, Math.min(99, Number(n) || 8)) }),
+      waterGlassVolumeMl: 200,
+      setWaterGlassVolumeMl: (n) => set({ waterGlassVolumeMl: Math.max(50, Math.min(500, Number(n) || 200)) }),
+
       // Loading state
       isLoading: false,
       setIsLoading: (loading) => set({ isLoading: loading }),
@@ -302,7 +308,8 @@ const useAppStore = create(
         let log = waterLogs.find(l => l.date === date)
 
         if (!log) {
-          log = { id: generateId(), date, glasses: 0, target: 8, created_at: new Date().toISOString() }
+          const target = get().waterTargetDefault ?? 8
+          log = { id: generateId(), date, glasses: 0, target, created_at: new Date().toISOString() }
           set((state) => ({ waterLogs: [...state.waterLogs, log] }))
 
           if (isSupabaseConfigured()) {
@@ -407,7 +414,9 @@ const useAppStore = create(
         dailyMeals: state.dailyMeals,
         mealItems: state.mealItems,
         waterLogs: state.waterLogs,
-        weightLogs: state.weightLogs
+        weightLogs: state.weightLogs,
+        waterTargetDefault: state.waterTargetDefault,
+        waterGlassVolumeMl: state.waterGlassVolumeMl
       })
     }
   )

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Database, Trash2, Download, Upload } from 'lucide-react'
+import { Database, Trash2, Download, Upload, Droplets } from 'lucide-react'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import useAppStore from '../stores/appStore'
@@ -9,6 +9,10 @@ export default function Settings() {
   const [exportStatus, setExportStatus] = useState('')
 
   const store = useAppStore()
+  const waterTargetDefault = useAppStore((state) => state.waterTargetDefault)
+  const setWaterTargetDefault = useAppStore((state) => state.setWaterTargetDefault)
+  const waterGlassVolumeMl = useAppStore((state) => state.waterGlassVolumeMl)
+  const setWaterGlassVolumeMl = useAppStore((state) => state.setWaterGlassVolumeMl)
 
   const handleExport = () => {
     const data = {
@@ -20,7 +24,9 @@ export default function Settings() {
       dailyMeals: store.dailyMeals,
       mealItems: store.mealItems,
       waterLogs: store.waterLogs,
-      weightLogs: store.weightLogs
+      weightLogs: store.weightLogs,
+      waterTargetDefault: store.waterTargetDefault,
+      waterGlassVolumeMl: store.waterGlassVolumeMl
     }
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -51,6 +57,8 @@ export default function Settings() {
         if (data.mealItems) store.setMealItems(data.mealItems)
         if (data.waterLogs) store.setWaterLogs(data.waterLogs)
         if (data.weightLogs) store.setWeightLogs(data.weightLogs)
+        if (typeof data.waterTargetDefault === 'number') store.setWaterTargetDefault(data.waterTargetDefault)
+        if (typeof data.waterGlassVolumeMl === 'number') store.setWaterGlassVolumeMl(data.waterGlassVolumeMl)
         setExportStatus('Veriler başarıyla yüklendi!')
         setTimeout(() => setExportStatus(''), 3000)
       } catch (error) {
@@ -154,6 +162,42 @@ export default function Settings() {
               <Trash2 size={18} />
               Tüm Verileri Sil
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Droplets size={20} className="text-blue-400" />
+            Su Takibi Ayarları
+          </CardTitle>
+        </CardHeader>
+        <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label className="text-sm text-[var(--text-secondary)]">Günlük hedef (bardak)</label>
+            <input
+              type="number"
+              min={1}
+              max={99}
+              value={waterTargetDefault}
+              onChange={(e) => setWaterTargetDefault(e.target.value)}
+              className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-[var(--accent)] transition-colors w-24"
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label className="text-sm text-[var(--text-secondary)]">Bir bardak hacmi (ml)</label>
+            <input
+              type="number"
+              min={50}
+              max={500}
+              value={waterGlassVolumeMl}
+              onChange={(e) => setWaterGlassVolumeMl(e.target.value)}
+              className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-[var(--accent)] transition-colors w-24"
+            />
+            <p className="text-xs text-[var(--text-secondary)]">
+              Su ekranında bardak ve litre birlikte gösterilir (örn. 8×200ml = 1,6 L).
+            </p>
           </div>
         </CardContent>
       </Card>

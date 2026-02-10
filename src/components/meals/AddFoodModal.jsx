@@ -12,12 +12,16 @@ export default function AddFoodModal({ isOpen, onClose, date, mealType }) {
   const units = useAppStore((state) => state.units)
   const getOrCreateDailyMeal = useAppStore((state) => state.getOrCreateDailyMeal)
   const addMealItem = useAppStore((state) => state.addMealItem)
+  const addFood = useAppStore((state) => state.addFood)
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedItem, setSelectedItem] = useState(null)
   const [itemType, setItemType] = useState('food')
   const [quantity, setQuantity] = useState('1')
   const [unitId, setUnitId] = useState('')
+  const [showNewFoodForm, setShowNewFoodForm] = useState(false)
+  const [newFoodName, setNewFoodName] = useState('')
+  const [newFoodDefaultUnit, setNewFoodDefaultUnit] = useState('')
 
   const filteredItems = itemType === 'food'
     ? foods.filter((f) => f.name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -53,7 +57,25 @@ export default function AddFoodModal({ isOpen, onClose, date, mealType }) {
     setItemType('food')
     setQuantity('1')
     setUnitId('')
+    setShowNewFoodForm(false)
+    setNewFoodName('')
+    setNewFoodDefaultUnit('')
     onClose()
+  }
+
+  const handleAddNewFood = async (e) => {
+    e.preventDefault()
+    if (!newFoodName.trim()) return
+    const newFood = await addFood({
+      name: newFoodName.trim(),
+      default_unit_id: newFoodDefaultUnit || null
+    })
+    setNewFoodName('')
+    setNewFoodDefaultUnit('')
+    setShowNewFoodForm(false)
+    setSelectedItem(newFood)
+    if (newFood.default_unit_id) setUnitId(newFood.default_unit_id)
+    else setUnitId('')
   }
 
   return (
@@ -87,7 +109,58 @@ export default function AddFoodModal({ isOpen, onClose, date, mealType }) {
           </Button>
         </div>
 
+        {/* Besin sekmesinde: Yeni besin ekle linki */}
+        {itemType === 'food' && !selectedItem && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => setShowNewFoodForm(!showNewFoodForm)}
+              className="text-sm text-[var(--accent)] hover:underline"
+            >
+              {showNewFoodForm ? 'İptal' : '+ Yeni besin ekle'}
+            </button>
+          </div>
+        )}
+
+        {/* Yeni besin formu (Besin sekmesi) */}
+        {itemType === 'food' && showNewFoodForm && (
+          <form onSubmit={handleAddNewFood} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <Input
+              label="Besin adı"
+              value={newFoodName}
+              onChange={setNewFoodName}
+              placeholder="örn: Yoğurt"
+              autoFocus
+            />
+            <Select
+              label="Varsayılan birim (opsiyonel)"
+              value={newFoodDefaultUnit}
+              onChange={setNewFoodDefaultUnit}
+              options={units.map((u) => ({ value: u.id, label: u.name }))}
+              placeholder="Birim seçin"
+            />
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <Button
+                type="submit"
+                disabled={!newFoodName.trim()}
+                style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+              >
+                Ekle ve seç
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => { setShowNewFoodForm(false); setNewFoodName(''); setNewFoodDefaultUnit('') }}
+                style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+              >
+                İptal
+              </Button>
+            </div>
+          </form>
+        )}
+
         {/* Search */}
+        {!showNewFoodForm && (
         <div className="relative">
           <Search
             className="absolute text-[var(--text-secondary)] flex-shrink-0"
@@ -112,9 +185,10 @@ export default function AddFoodModal({ isOpen, onClose, date, mealType }) {
             className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-[var(--accent)] transition-colors leading-normal"
           />
         </div>
+        )}
 
         {/* Item List */}
-        {!selectedItem && (
+        {!selectedItem && !showNewFoodForm && (
           <div className="max-h-48 overflow-y-auto" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {filteredItems.length === 0 ? (
               <p className="text-sm text-[var(--text-secondary)] text-center" style={{ paddingTop: '2.5rem', paddingBottom: '2.5rem' }}>
