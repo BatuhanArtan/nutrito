@@ -195,17 +195,27 @@ export default function Recipes() {
       </div>
 
       {recipeCategories.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', margin: 0 }}>
           {recipeCategories.map((category) => (
             <div
               key={category.id}
-              className="flex items-center gap-2 px-3 py-1 rounded-full text-sm"
-              style={{ backgroundColor: category.color + '20', color: category.color }}
+              className="flex items-center rounded-full text-sm"
+              style={{
+                backgroundColor: category.color + '20',
+                color: category.color,
+                paddingLeft: '0.75rem',
+                paddingRight: '0.5rem',
+                paddingTop: '0.375rem',
+                paddingBottom: '0.375rem',
+                gap: '0.375rem',
+                margin: 0
+              }}
             >
               <span>{category.name}</span>
               <button
+                type="button"
                 onClick={() => handleDeleteCategory(category.id)}
-                className="hover:opacity-70"
+                className="hover:opacity-70 flex-shrink-0"
               >
                 <Trash2 size={12} />
               </button>

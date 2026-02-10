@@ -201,19 +201,20 @@ export default function Exchanges() {
                 </CardHeader>
                 <CardContent>
                   {foodExchanges.length === 0 ? (
-                    <p className="text-sm text-[var(--text-secondary)]">
+                    <p className="text-sm text-[var(--text-secondary)]" style={{ paddingTop: '0.25rem', paddingBottom: '0.25rem' }}>
                       Henüz değişim tanımlanmamış.
                     </p>
                   ) : (
-                    <ul className="space-y-2">
+                    <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0 }}>
                       {foodExchanges.map((exchange) => (
                         <li
                           key={exchange.id}
-                          className="flex items-center justify-between bg-[var(--bg-tertiary)] rounded-lg px-3 py-2"
+                          className="flex items-center justify-between bg-[var(--bg-tertiary)] rounded-lg"
+                          style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
                         >
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className="flex items-center gap-2 text-sm" style={{ minWidth: 0 }}>
                             <span className="text-[var(--text-primary)]">1 {getUnitName(food.default_unit_id) || 'porsiyon'}</span>
-                            <ArrowRight size={14} className="text-[var(--accent)]" />
+                            <ArrowRight size={14} className="text-[var(--accent)] flex-shrink-0" />
                             <span className="text-[var(--text-primary)]">
                               {exchange.quantity} {getUnitName(exchange.unit_id)} {getFoodName(exchange.equivalent_food_id)}
                             </span>
@@ -222,6 +223,7 @@ export default function Exchanges() {
                             variant="ghost"
                             size="icon"
                             onClick={() => deleteExchange(exchange.id)}
+                            className="flex-shrink-0"
                           >
                             <Trash2 size={14} className="text-red-400" />
                           </Button>
