@@ -17,10 +17,13 @@ export default function FoodItem({ item }) {
 
   return (
     <>
-      <li className="flex items-center justify-between bg-[var(--bg-tertiary)] rounded-lg px-3 py-2 group">
+      <li
+        className="flex items-center justify-between bg-[var(--bg-tertiary)] rounded-lg group"
+        style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+      >
         <button
           onClick={() => setShowExchangeModal(true)}
-          className="flex items-center gap-2 text-left flex-1 hover:text-[var(--accent)] transition-colors"
+          className="flex items-center gap-2 text-left flex-1 hover:text-[var(--accent)] transition-colors min-w-0"
         >
           <span className="text-sm text-[var(--text-primary)]">
             {item.quantity} {unitName} {displayName}

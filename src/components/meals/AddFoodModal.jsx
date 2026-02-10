@@ -68,7 +68,8 @@ export default function AddFoodModal({ isOpen, onClose, date, mealType }) {
               setItemType('food')
               setSelectedItem(null)
             }}
-            className="flex-1 py-3"
+            className="flex-1"
+            style={{ minHeight: '3rem', paddingTop: '0.875rem', paddingBottom: '0.875rem' }}
           >
             Besin
           </Button>
@@ -79,7 +80,8 @@ export default function AddFoodModal({ isOpen, onClose, date, mealType }) {
               setItemType('recipe')
               setSelectedItem(null)
             }}
-            className="flex-1 py-3"
+            className="flex-1"
+            style={{ minHeight: '3rem', paddingTop: '0.875rem', paddingBottom: '0.875rem' }}
           >
             Tarif
           </Button>
@@ -113,7 +115,7 @@ export default function AddFoodModal({ isOpen, onClose, date, mealType }) {
 
         {/* Item List */}
         {!selectedItem && (
-          <div className="max-h-48 overflow-y-auto space-y-1.5">
+          <div className="max-h-48 overflow-y-auto" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {filteredItems.length === 0 ? (
               <p className="text-sm text-[var(--text-secondary)] text-center" style={{ paddingTop: '2.5rem', paddingBottom: '2.5rem' }}>
                 {searchTerm
@@ -125,7 +127,8 @@ export default function AddFoodModal({ isOpen, onClose, date, mealType }) {
                 <button
                   key={item.id}
                   onClick={() => handleSelectItem(item)}
-                  className="w-full text-left px-4 py-3 rounded-lg bg-[var(--bg-tertiary)] hover:bg-[#3a3a3a] transition-colors"
+                  className="w-full text-left rounded-lg bg-[var(--bg-tertiary)] hover:bg-[#3a3a3a] transition-colors"
+                  style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
                 >
                   <span className="text-[var(--text-primary)]">
                     {itemType === 'food' ? item.name : item.title}
@@ -138,21 +141,22 @@ export default function AddFoodModal({ isOpen, onClose, date, mealType }) {
 
         {/* Selected Item Form */}
         {selectedItem && (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="bg-[var(--bg-tertiary)] rounded-lg p-4">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div className="bg-[var(--bg-tertiary)] rounded-lg" style={{ padding: '1.25rem' }}>
               <p className="text-[var(--text-primary)] font-medium">
                 {itemType === 'food' ? selectedItem.name : selectedItem.title}
               </p>
               <button
                 type="button"
                 onClick={() => setSelectedItem(null)}
-                className="text-sm text-[var(--accent)] hover:underline mt-1"
+                className="text-sm text-[var(--accent)] hover:underline"
+                style={{ marginTop: '0.25rem' }}
               >
                 Değiştir
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2" style={{ gap: '1rem' }}>
               <Input
                 label="Miktar"
                 type="number"
@@ -170,11 +174,20 @@ export default function AddFoodModal({ isOpen, onClose, date, mealType }) {
               />
             </div>
 
-            <div className="flex gap-2">
-              <Button type="submit" className="flex-1">
+            <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
+              <Button
+                type="submit"
+                className="flex-1"
+                style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+              >
                 Ekle
               </Button>
-              <Button type="button" variant="secondary" onClick={handleClose}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleClose}
+                style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+              >
                 İptal
               </Button>
             </div>

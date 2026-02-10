@@ -301,7 +301,7 @@ export default function Recipes() {
         title={editingRecipe ? 'Tarifi Düzenle' : 'Yeni Tarif'}
         className="max-w-lg"
       >
-        <form onSubmit={handleAddRecipe} className="space-y-4">
+        <form onSubmit={handleAddRecipe} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <Input
             label="Tarif Adı"
             value={recipeTitle}
@@ -316,7 +316,7 @@ export default function Recipes() {
             options={recipeCategories.map((c) => ({ value: c.id, label: c.name }))}
             placeholder="Kategori seçin (opsiyonel)"
           />
-          <div className="flex flex-col gap-1">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label className="text-sm text-[var(--text-secondary)]">Malzemeler</label>
             <textarea
               value={recipeIngredients}
@@ -326,7 +326,7 @@ export default function Recipes() {
               className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-[var(--accent)] transition-colors resize-none"
             />
           </div>
-          <div className="flex flex-col gap-1">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label className="text-sm text-[var(--text-secondary)]">Yapılışı</label>
             <textarea
               value={recipeInstructions}
@@ -336,11 +336,20 @@ export default function Recipes() {
               className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-[var(--accent)] transition-colors resize-none"
             />
           </div>
-          <div className="flex gap-2 pt-2">
-            <Button type="submit" className="flex-1">
+          <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
+            <Button
+              type="submit"
+              className="flex-1"
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+            >
               {editingRecipe ? 'Güncelle' : 'Ekle'}
             </Button>
-            <Button type="button" variant="secondary" onClick={resetRecipeForm}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={resetRecipeForm}
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+            >
               İptal
             </Button>
           </div>
@@ -352,7 +361,7 @@ export default function Recipes() {
         onClose={() => setShowCategoryModal(false)}
         title="Yeni Kategori"
       >
-        <form onSubmit={handleAddCategory} className="space-y-4">
+        <form onSubmit={handleAddCategory} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <Input
             label="Kategori Adı"
             value={categoryName}
@@ -360,7 +369,7 @@ export default function Recipes() {
             placeholder="örn: Salatalar"
             autoFocus
           />
-          <div className="flex flex-col gap-1">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label className="text-sm text-[var(--text-secondary)]">Renk</label>
             <input
               type="color"
@@ -369,11 +378,20 @@ export default function Recipes() {
               className="w-full h-10 rounded-lg cursor-pointer"
             />
           </div>
-          <div className="flex gap-2 pt-2">
-            <Button type="submit" className="flex-1">
+          <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
+            <Button
+              type="submit"
+              className="flex-1"
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+            >
               Ekle
             </Button>
-            <Button type="button" variant="secondary" onClick={() => setShowCategoryModal(false)}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowCategoryModal(false)}
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+            >
               İptal
             </Button>
           </div>

@@ -241,7 +241,7 @@ export default function Exchanges() {
         onClose={resetFoodForm}
         title={editingFood ? 'Besini Düzenle' : 'Yeni Besin'}
       >
-        <form onSubmit={handleAddFood} className="space-y-4">
+        <form onSubmit={handleAddFood} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <Input
             label="Besin Adı"
             value={foodName}
@@ -256,11 +256,20 @@ export default function Exchanges() {
             options={units.map((u) => ({ value: u.id, label: u.name }))}
             placeholder="Birim seçin (opsiyonel)"
           />
-          <div className="flex gap-2 pt-2">
-            <Button type="submit" className="flex-1">
+          <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
+            <Button
+              type="submit"
+              className="flex-1"
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+            >
               {editingFood ? 'Güncelle' : 'Ekle'}
             </Button>
-            <Button type="button" variant="secondary" onClick={resetFoodForm}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={resetFoodForm}
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+            >
               İptal
             </Button>
           </div>
@@ -272,8 +281,8 @@ export default function Exchanges() {
         onClose={resetExchangeForm}
         title={`Değişim Ekle - ${getFoodName(selectedFoodId)}`}
       >
-        <form onSubmit={handleAddExchange} className="space-y-4">
-          <p className="text-sm text-[var(--text-secondary)]">
+        <form onSubmit={handleAddExchange} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <p className="text-sm text-[var(--text-secondary)]" style={{ marginBottom: '0' }}>
             1 {getUnitName(foods.find(f => f.id === selectedFoodId)?.default_unit_id) || 'porsiyon'} {getFoodName(selectedFoodId)} = ?
           </p>
 
@@ -303,11 +312,20 @@ export default function Exchanges() {
               .map((f) => ({ value: f.id, label: f.name }))}
           />
 
-          <div className="flex gap-2 pt-2">
-            <Button type="submit" className="flex-1">
+          <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
+            <Button
+              type="submit"
+              className="flex-1"
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+            >
               Değişim Ekle
             </Button>
-            <Button type="button" variant="secondary" onClick={resetExchangeForm}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={resetExchangeForm}
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+            >
               İptal
             </Button>
           </div>

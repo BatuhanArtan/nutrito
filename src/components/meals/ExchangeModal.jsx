@@ -16,28 +16,29 @@ export default function ExchangeModal({ isOpen, onClose, foodId, foodName }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`${foodName} Değişimleri`}>
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         {exchanges.length === 0 ? (
-          <div className="text-center py-4">
-            <p className="text-[var(--text-secondary)] mb-4">
+          <div className="text-center" style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
+            <p className="text-[var(--text-secondary)]" style={{ marginBottom: '1.25rem' }}>
               Bu besin için tanımlanmış değişim bulunmuyor.
             </p>
-            <Button onClick={goToExchanges} variant="secondary">
+            <Button onClick={goToExchanges} variant="secondary" style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}>
               <ExternalLink size={16} />
               Değişimler Sayfasına Git
             </Button>
           </div>
         ) : (
           <>
-            <p className="text-sm text-[var(--text-secondary)]">
+            <p className="text-sm text-[var(--text-secondary)]" style={{ marginBottom: '0' }}>
               1 porsiyon {foodName} yerine şunları kullanabilirsiniz:
             </p>
 
-            <ul className="space-y-2">
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0 }}>
               {exchanges.map((exchange) => (
                 <li
                   key={exchange.id}
-                  className="flex items-center gap-2 bg-[var(--bg-tertiary)] rounded-lg px-3 py-2"
+                  className="flex items-center bg-[var(--bg-tertiary)] rounded-lg"
+                  style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', gap: '0.5rem' }}
                 >
                   <ArrowRight size={14} className="text-[var(--accent)] flex-shrink-0" />
                   <span className="text-[var(--text-primary)]">
@@ -47,7 +48,12 @@ export default function ExchangeModal({ isOpen, onClose, foodId, foodName }) {
               ))}
             </ul>
 
-            <Button onClick={goToExchanges} variant="ghost" className="w-full">
+            <Button
+              onClick={goToExchanges}
+              variant="ghost"
+              className="w-full"
+              style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', marginTop: '0.25rem' }}
+            >
               <ExternalLink size={16} />
               Tüm Değişimleri Düzenle
             </Button>

@@ -51,7 +51,7 @@ export default function MealCard({ date, mealType, title }) {
               Henüz besin eklenmemiş
             </p>
           ) : (
-            <ul className="space-y-2">
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0 }}>
               {mealItems.map((item) => (
                 <FoodItem key={item.id} item={item} />
               ))}
