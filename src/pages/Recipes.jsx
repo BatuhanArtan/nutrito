@@ -258,12 +258,17 @@ export default function Recipes() {
             return (
               <Card key={recipe.id}>
                 <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <CardTitle>{recipe.title}</CardTitle>
+                  <div className="flex items-center flex-wrap" style={{ gap: '0.5rem' }}>
+                    <CardTitle style={{ margin: 0, marginRight: 0 }}>{recipe.title}</CardTitle>
                     {category && (
                       <span
-                        className="px-2 py-0.5 rounded-full text-xs"
-                        style={{ backgroundColor: category.color + '20', color: category.color }}
+                        className="rounded-full text-xs shrink-0"
+                        style={{
+                          backgroundColor: category.color + '20',
+                          color: category.color,
+                          padding: '0.375rem 0.75rem',
+                          marginLeft: '0.75rem'
+                        }}
                       >
                         {category.name}
                       </span>
