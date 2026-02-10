@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Database, Trash2, Download, Upload, Droplets } from 'lucide-react'
+import { Database, Trash2, Download, Upload, Droplets, CloudUpload } from 'lucide-react'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import useAppStore from '../stores/appStore'
@@ -7,8 +7,11 @@ import { isSupabaseConfigured } from '../lib/supabase'
 
 export default function Settings() {
   const [exportStatus, setExportStatus] = useState('')
+  const [pushStatus, setPushStatus] = useState('')
+  const [pushLoading, setPushLoading] = useState(false)
 
   const store = useAppStore()
+  const pushLocalDataToSupabase = useAppStore((state) => state.pushLocalDataToSupabase)
   const waterTargetDefault = useAppStore((state) => state.waterTargetDefault)
   const setWaterTargetDefault = useAppStore((state) => state.setWaterTargetDefault)
   const waterGlassVolumeMl = useAppStore((state) => state.waterGlassVolumeMl)
@@ -70,6 +73,21 @@ export default function Settings() {
     e.target.value = ''
   }
 
+  const handlePushToSupabase = async () => {
+    if (!isSupabaseConfigured()) return
+    setPushLoading(true)
+    setPushStatus('')
+    try {
+      await pushLocalDataToSupabase()
+      setPushStatus('Yerel veriler Supabase\'e aktarıldı.')
+      setTimeout(() => setPushStatus(''), 4000)
+    } catch (err) {
+      setPushStatus(err?.message || 'Aktarım başarısız.')
+      setTimeout(() => setPushStatus(''), 5000)
+    }
+    setPushLoading(false)
+  }
+
   const handleClearData = () => {
     if (confirm('Tüm veriler silinecek. Emin misiniz?')) {
       store.setUnits([])
@@ -116,6 +134,27 @@ export default function Settings() {
               Supabase bağlantısı için .env dosyasında VITE_SUPABASE_URL ve
               VITE_SUPABASE_ANON_KEY değerlerini tanımlayın.
             </p>
+          )}
+          {isSupabaseConfigured() && (
+            <div style={{ marginTop: '1rem' }}>
+              <Button
+                variant="secondary"
+                onClick={handlePushToSupabase}
+                disabled={pushLoading}
+                style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+              >
+                <CloudUpload size={18} style={{ marginRight: '0.5rem' }} />
+                {pushLoading ? 'Aktarılıyor...' : 'Yerel verileri Supabase\'e aktar'}
+              </Button>
+              {pushStatus && (
+                <p className={`text-sm mt-2 ${pushStatus.startsWith('Yerel') ? 'text-[var(--success)]' : 'text-red-400'}`}>
+                  {pushStatus}
+                </p>
+              )}
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                İlk bağlantıda veya yerel verileri buluta taşımak için bir kez tıklayın.
+              </p>
+            </div>
           )}
         </CardContent>
       </Card>

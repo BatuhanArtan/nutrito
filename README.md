@@ -21,22 +21,43 @@ Kişisel diyet ve beslenme takip uygulaması. PWA destekli, Supabase entegrasyon
 npm install
 ```
 
-### 2. Supabase Kurulumu (Opsiyonel)
+### 2. Supabase’e Bağlanma (Opsiyonel)
 
-Supabase kullanmak için:
+Verileri Supabase’te saklamak için:
 
-1. [Supabase](https://supabase.com) hesabı oluşturun
-2. Yeni proje oluşturun ("Nutrito" adıyla)
-3. SQL Editor'da `supabase/schema.sql` dosyasını çalıştırın
-4. Project Settings > API > URL ve anon key'i kopyalayın
-5. `.env` dosyası oluşturup değerleri girin:
+**Adım 1 – Proje oluştur**
 
-```bash
-cp .env.example .env
-# .env dosyasını düzenleyin
+1. [Supabase Dashboard](https://supabase.com/dashboard) → **New project**
+2. Proje adı ve şifre belirleyin, region seçin, **Create project** deyin.
+
+**Adım 2 – Tabloları oluştur**
+
+1. Sol menüden **SQL Editor** → **New query**
+2. Bu repodaki `supabase/schema.sql` dosyasının **tüm içeriğini** kopyalayıp yapıştırın
+3. **Run** (veya F5) ile çalıştırın. “Success” görmeniz yeterli.
+
+**Adım 3 – API bilgilerini al**
+
+1. Sol menü **Project Settings** (dişli) → **API**
+2. **Project URL** ve **anon public** key’i kopyalayın.
+
+**Adım 4 – Projede .env ayarla**
+
+1. Proje kökünde `.env` dosyası oluşturun (yoksa `cp .env.example .env`)
+2. Şu değişkenleri yapıştırın (kendi değerlerinizle değiştirin):
+
+```
+VITE_SUPABASE_URL=https://XXXXXXXX.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6...
 ```
 
-Supabase yapılandırılmadığında uygulama yerel depolamayı (localStorage) kullanır.
+3. Kaydedin, ardından geliştirme sunucusunu **yeniden başlatın** (`npm run dev`).
+
+**Adım 5 – Mevcut yerel verileri göndermek (isteğe bağlı)**
+
+Daha önce uygulamada veri girdiyseniz: **Ayarlar** sayfasında **“Yerel verileri Supabase’e aktar”** butonuna bir kez tıklayın. Böylece localStorage’taki veriler Supabase’e kopyalanır.
+
+Supabase yapılandırılmadığında uygulama sadece yerel depolamayı (localStorage) kullanır.
 
 ### 3. Geliştirme Sunucusunu Başlat
 

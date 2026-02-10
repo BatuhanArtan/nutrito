@@ -105,6 +105,28 @@ const useAppStore = create(
         }
       },
 
+      // Yerel verileri Supabase'e tek seferlik gönder (ilk bağlantı sonrası)
+      pushLocalDataToSupabase: async () => {
+        if (!isSupabaseConfigured()) return
+        const state = get()
+        const tables = [
+          { name: 'units', data: state.units, onConflict: 'id' },
+          { name: 'recipe_categories', data: state.recipeCategories, onConflict: 'id' },
+          { name: 'foods', data: state.foods, onConflict: 'id' },
+          { name: 'food_exchanges', data: state.exchanges, onConflict: 'id' },
+          { name: 'recipes', data: state.recipes, onConflict: 'id' },
+          { name: 'daily_meals', data: state.dailyMeals, onConflict: 'id' },
+          { name: 'meal_items', data: state.mealItems, onConflict: 'id' },
+          { name: 'water_logs', data: state.waterLogs, onConflict: 'date' },
+          { name: 'weight_logs', data: state.weightLogs, onConflict: 'date' }
+        ]
+        for (const { name, data, onConflict } of tables) {
+          if (!data?.length) continue
+          const { error } = await supabase.from(name).upsert(data, { onConflict })
+          if (error) throw new Error(`${name}: ${error.message}`)
+        }
+      },
+
       // CRUD Operations with Supabase sync
 
       // Units
