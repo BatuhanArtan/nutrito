@@ -127,15 +127,22 @@ export default function Recipes() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <h1 className="text-2xl font-bold text-[var(--text-primary)]">Tarifler</h1>
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => setShowCategoryModal(true)}>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowCategoryModal(true)}
+            style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+          >
             <Plus size={18} />
             Kategori
           </Button>
-          <Button onClick={() => setShowRecipeModal(true)}>
+          <Button
+            onClick={() => setShowRecipeModal(true)}
+            style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+          >
             <Plus size={18} />
             Tarif Ekle
           </Button>
@@ -144,22 +151,36 @@ export default function Recipes() {
 
       <Button
         onClick={handleHungry}
-        className="w-full py-4 text-lg bg-gradient-to-r from-[var(--accent)] to-[var(--accent-light)] hover:opacity-90"
+        className="w-full text-lg bg-gradient-to-r from-[var(--accent)] to-[var(--accent-light)] hover:opacity-90"
+        style={{ paddingTop: '1rem', paddingBottom: '1rem' }}
         disabled={filteredRecipes.length === 0}
       >
         <Shuffle size={24} />
         ACIKTIM! Bana bir tarif öner
       </Button>
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={20} />
+      <div className="flex flex-col md:flex-row md:flex-wrap" style={{ gap: '1rem' }}>
+        <div className="relative flex-1 min-w-0">
+          <Search
+            className="absolute text-[var(--text-secondary)]"
+            size={20}
+            style={{ left: '1.25rem', top: '50%', transform: 'translateY(-50%)' }}
+          />
           <input
             type="text"
             placeholder="Tarif ara..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[var(--bg-secondary)] border border-[var(--bg-tertiary)] rounded-lg pl-10 pr-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-[var(--accent)] transition-colors"
+            style={{
+              width: '100%',
+              paddingLeft: '3.25rem',
+              paddingRight: '1.25rem',
+              paddingTop: '0.875rem',
+              paddingBottom: '0.875rem',
+              minHeight: '3rem',
+              boxSizing: 'border-box'
+            }}
+            className="bg-[var(--bg-secondary)] border border-[var(--bg-tertiary)] rounded-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-[var(--accent)] transition-colors"
           />
         </div>
         <Select
@@ -174,7 +195,7 @@ export default function Recipes() {
       </div>
 
       {recipeCategories.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
           {recipeCategories.map((category) => (
             <div
               key={category.id}
@@ -195,7 +216,7 @@ export default function Recipes() {
 
       {filteredRecipes.length === 0 ? (
         <Card>
-          <CardContent className="text-center py-8">
+          <CardContent className="text-center" style={{ paddingTop: '2.5rem', paddingBottom: '2.5rem' }}>
             <p className="text-[var(--text-secondary)]">
               {searchTerm || selectedCategory
                 ? 'Arama sonucu bulunamadı.'
@@ -204,7 +225,7 @@ export default function Recipes() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {filteredRecipes.map((recipe) => {
             const category = getCategoryById(recipe.category_id)
             const isExpanded = expandedRecipes.has(recipe.id)

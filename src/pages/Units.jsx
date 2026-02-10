@@ -53,10 +53,13 @@ export default function Units() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <h1 className="text-2xl font-bold text-[var(--text-primary)]">Birimler</h1>
-        <Button onClick={() => setShowForm(true)}>
+        <Button
+          onClick={() => setShowForm(true)}
+          style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+        >
           <Plus size={18} />
           Birim Ekle
         </Button>
@@ -68,7 +71,7 @@ export default function Units() {
             <CardTitle>{editingId ? 'Birimi Düzenle' : 'Yeni Birim'}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <Input
                 label="Birim Adı"
                 value={name}
@@ -82,12 +85,20 @@ export default function Units() {
                 onChange={setAbbreviation}
                 placeholder="örn: brd"
               />
-              <div className="flex gap-2">
-                <Button type="submit">
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <Button
+                  type="submit"
+                  style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.625rem', paddingBottom: '0.625rem' }}
+                >
                   <Check size={18} />
                   {editingId ? 'Güncelle' : 'Ekle'}
                 </Button>
-                <Button type="button" variant="secondary" onClick={handleCancel}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleCancel}
+                  style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.625rem', paddingBottom: '0.625rem' }}
+                >
                   <X size={18} />
                   İptal
                 </Button>
@@ -100,7 +111,7 @@ export default function Units() {
       <Card>
         <CardContent>
           {units.length === 0 ? (
-            <p className="text-[var(--text-secondary)] text-center py-8">
+            <p className="text-[var(--text-secondary)] text-center" style={{ paddingTop: '2.5rem', paddingBottom: '2.5rem' }}>
               Henüz birim eklenmemiş. Başlamak için "Birim Ekle" butonuna tıklayın.
             </p>
           ) : (
@@ -108,7 +119,8 @@ export default function Units() {
               {units.map((unit) => (
                 <li
                   key={unit.id}
-                  className="flex items-center justify-between py-3"
+                  className="flex items-center justify-between"
+                  style={{ paddingTop: '0.875rem', paddingBottom: '0.875rem' }}
                 >
                   <div>
                     <span className="text-[var(--text-primary)] font-medium">
@@ -151,11 +163,12 @@ export default function Units() {
           <p className="text-sm text-[var(--text-secondary)] mb-3">
             Diyetisyen listenizde sık kullanılan birimler:
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {['Bardak', 'Yemek Kaşığı (yk)', 'Tatlı Kaşığı (tk)', 'Çay Kaşığı (çk)', 'Kase', 'Adet', 'Avuç', 'Gram', 'Dilim', 'Porsiyon'].map((u) => (
               <span
                 key={u}
-                className="px-3 py-1 bg-[var(--bg-tertiary)] rounded-full text-sm text-[var(--text-secondary)]"
+                className="bg-[var(--bg-tertiary)] rounded-full text-sm text-[var(--text-secondary)]"
+                style={{ paddingLeft: '0.875rem', paddingRight: '0.875rem', paddingTop: '0.375rem', paddingBottom: '0.375rem' }}
               >
                 {u}
               </span>

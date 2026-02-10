@@ -114,29 +114,44 @@ export default function Exchanges() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <h1 className="text-2xl font-bold text-[var(--text-primary)]">Değişimler</h1>
-        <Button onClick={() => setShowFoodModal(true)}>
+        <Button
+          onClick={() => setShowFoodModal(true)}
+          style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+        >
           <Plus size={18} />
           Besin Ekle
         </Button>
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={20} />
+        <Search
+          className="absolute text-[var(--text-secondary)]"
+          size={20}
+          style={{ left: '1.25rem', top: '50%', transform: 'translateY(-50%)' }}
+        />
         <input
           type="text"
           placeholder="Besin ara..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-[var(--bg-secondary)] border border-[var(--bg-tertiary)] rounded-lg pl-10 pr-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-[var(--accent)] transition-colors"
+          style={{
+            width: '100%',
+            paddingLeft: '3.25rem',
+            paddingRight: '1.25rem',
+            paddingTop: '0.875rem',
+            paddingBottom: '0.875rem',
+            boxSizing: 'border-box'
+          }}
+          className="bg-[var(--bg-secondary)] border border-[var(--bg-tertiary)] rounded-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-[var(--accent)] transition-colors min-h-[3rem]"
         />
       </div>
 
       {filteredFoods.length === 0 ? (
         <Card>
-          <CardContent className="text-center py-8">
+          <CardContent className="text-center" style={{ paddingTop: '2.5rem', paddingBottom: '2.5rem' }}>
             <p className="text-[var(--text-secondary)]">
               {searchTerm
                 ? 'Arama sonucu bulunamadı.'
@@ -145,7 +160,7 @@ export default function Exchanges() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {filteredFoods.map((food) => {
             const foodExchanges = getFoodExchanges(food.id)
             return (

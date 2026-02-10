@@ -80,7 +80,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <h1 className="text-2xl font-bold text-[var(--text-primary)]">Ayarlar</h1>
 
       <Card>
@@ -91,7 +91,7 @@ export default function Settings() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <div
               className={`w-3 h-3 rounded-full ${
                 isSupabaseConfigured() ? 'bg-[var(--success)]' : 'bg-[var(--warning)]'
@@ -116,31 +116,41 @@ export default function Settings() {
         <CardHeader>
           <CardTitle>Veri Yönetimi</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {exportStatus && (
             <p className="text-sm text-[var(--success)]">{exportStatus}</p>
           )}
 
-          <div className="flex flex-wrap gap-3">
-            <Button onClick={handleExport}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <Button
+              onClick={handleExport}
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+            >
               <Download size={18} />
               Verileri İndir
             </Button>
 
-            <label>
+            <label className="cursor-pointer" style={{ display: 'inline-block' }}>
               <input
                 type="file"
                 accept=".json"
                 onChange={handleImport}
                 className="hidden"
               />
-              <Button variant="secondary" as="span" className="cursor-pointer">
+              <span
+                className="inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors duration-200 bg-[var(--bg-tertiary)] hover:bg-[#3a3a3a] text-[var(--text-primary)] cursor-pointer"
+                style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+              >
                 <Upload size={18} />
                 Verileri Yükle
-              </Button>
+              </span>
             </label>
 
-            <Button variant="danger" onClick={handleClearData}>
+            <Button
+              variant="danger"
+              onClick={handleClearData}
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+            >
               <Trash2 size={18} />
               Tüm Verileri Sil
             </Button>
@@ -156,7 +166,7 @@ export default function Settings() {
           <p className="text-[var(--text-secondary)]">
             Nutrito - Kişisel diyet ve beslenme takip uygulaması
           </p>
-          <p className="text-sm text-[var(--text-secondary)] mt-2">
+          <p className="text-sm text-[var(--text-secondary)]" style={{ marginTop: '0.5rem' }}>
             Versiyon 1.0.0
           </p>
         </CardContent>
