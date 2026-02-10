@@ -28,12 +28,13 @@ export default function Sidebar() {
                 to={item.path}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-4 pl-6 pr-5 py-3.5 rounded-lg transition-colors',
+                    'flex items-center py-3.5 rounded-lg transition-colors',
                     isActive
                       ? 'bg-[var(--accent)] text-white'
                       : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
                   )
                 }
+                style={{ paddingLeft: '1.625rem', paddingRight: '1.25rem', gap: '0.75rem' }}
               >
                 <item.icon size={20} className="flex-shrink-0" />
                 <span>{item.label}</span>

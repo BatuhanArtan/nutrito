@@ -3,7 +3,7 @@ import { Sparkles } from 'lucide-react'
 export default function GeminiButton() {
   return (
     <a
-      href="https://gemini.google.com/app/c_39929244a9227eab"
+      href="https://gemini.google.com/gem/a445a7ad3082/39929244a9227eab"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50
