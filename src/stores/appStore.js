@@ -483,6 +483,21 @@ const useAppStore = create(
             recipe: recipes.find(r => r.id === item.recipe_id),
             unit: units.find(u => u.id === item.unit_id)
           }))
+      },
+
+      // Çıkış yapınca kullanıcı verilerini temizle
+      clearUserData: () => {
+        set({
+          foods: [],
+          exchanges: [],
+          recipes: [],
+          recipeCategories: [],
+          dailyMeals: [],
+          mealItems: [],
+          waterLogs: [],
+          weightLogs: [],
+          units: [...DEFAULT_UNITS]
+        })
       }
     }),
     {

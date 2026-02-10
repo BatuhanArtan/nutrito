@@ -1,17 +1,23 @@
 import { useState } from 'react'
-import { Database, Trash2, Download, Upload, Droplets, CloudUpload } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Database, Trash2, Download, Upload, Droplets, CloudUpload, LogOut } from 'lucide-react'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import useAppStore from '../stores/appStore'
-import { isSupabaseConfigured } from '../lib/supabase'
+import { useAuthStore } from '../stores/authStore'
+import { isSupabaseConfigured, displayUsername } from '../lib/supabase'
 
 export default function Settings() {
+  const navigate = useNavigate()
   const [exportStatus, setExportStatus] = useState('')
   const [pushStatus, setPushStatus] = useState('')
   const [pushLoading, setPushLoading] = useState(false)
 
   const store = useAppStore()
   const pushLocalDataToSupabase = useAppStore((state) => state.pushLocalDataToSupabase)
+  const clearUserData = useAppStore((state) => state.clearUserData)
+  const user = useAuthStore((state) => state.user)
+  const signOut = useAuthStore((state) => state.signOut)
   const waterTargetDefault = useAppStore((state) => state.waterTargetDefault)
   const setWaterTargetDefault = useAppStore((state) => state.setWaterTargetDefault)
   const waterGlassVolumeMl = useAppStore((state) => state.waterGlassVolumeMl)
@@ -105,9 +111,34 @@ export default function Settings() {
     }
   }
 
+  const handleSignOut = async () => {
+    clearUserData()
+    await signOut()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <h1 className="text-2xl font-bold text-[var(--text-primary)]">Ayarlar</h1>
+
+      {isSupabaseConfigured() && user && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Hesap</CardTitle>
+          </CardHeader>
+          <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <p className="text-sm text-[var(--text-secondary)]">{displayUsername(user.email)}</p>
+            <Button
+              variant="secondary"
+              onClick={handleSignOut}
+              style={{ alignSelf: 'flex-start', paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+            >
+              <LogOut size={18} style={{ marginRight: '0.5rem' }} />
+              Çıkış Yap
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

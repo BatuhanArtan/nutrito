@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
+import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import BottomNav from './BottomNav'
 import GeminiButton from './GeminiButton'
 import useAppStore from '../../stores/appStore'
 
-export default function Layout({ children }) {
+export default function Layout() {
   const initializeData = useAppStore((state) => state.initializeData)
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function Layout({ children }) {
         }}
       >
         <div style={{ padding: '1.5rem', maxWidth: '72rem', margin: '0 auto' }}>
-          {children}
+          <Outlet />
         </div>
       </div>
 
