@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Database, Trash2, Download, Upload, Droplets, CloudUpload, LogOut, Target } from 'lucide-react'
+import { Database, Trash2, Download, Upload, Droplets, CloudUpload, LogOut, Target, AlertTriangle } from 'lucide-react'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
 import useAppStore from '../stores/appStore'
 import { useAuthStore } from '../stores/authStore'
 import { isSupabaseConfigured, displayUsername } from '../lib/supabase'
@@ -12,6 +13,9 @@ export default function Settings() {
   const [exportStatus, setExportStatus] = useState('')
   const [pushStatus, setPushStatus] = useState('')
   const [pushLoading, setPushLoading] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteError, setDeleteError] = useState('')
 
   const store = useAppStore()
   const pushLocalDataToSupabase = useAppStore((state) => state.pushLocalDataToSupabase)
@@ -97,20 +101,30 @@ export default function Settings() {
   }
 
   const handleClearData = () => {
-    if (confirm('Tüm veriler silinecek. Emin misiniz?')) {
-      store.setUnits([])
-      store.setFoods([])
-      store.setExchanges([])
-      store.setRecipes([])
-      store.setRecipeCategories([])
-      store.setDailyMeals([])
-      store.setMealItems([])
-      store.setWaterLogs([])
-      store.setWeightLogs([])
-      localStorage.removeItem('nutrito-storage')
-      setExportStatus('Tüm veriler silindi!')
-      setTimeout(() => setExportStatus(''), 3000)
+    setDeletePassword('')
+    setDeleteError('')
+    setShowDeleteModal(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (deletePassword !== 'delete-all-data') {
+      setDeleteError('"delete-all-data" yazman gerekiyor.')
+      return
     }
+    store.setUnits([])
+    store.setFoods([])
+    store.setExchanges([])
+    store.setRecipes([])
+    store.setRecipeCategories([])
+    store.setDailyMeals([])
+    store.setMealItems([])
+    store.setWaterLogs([])
+    store.setWeightLogs([])
+    localStorage.removeItem('nutrito-storage')
+    setShowDeleteModal(false)
+    setDeletePassword('')
+    setExportStatus('Tüm veriler silindi!')
+    setTimeout(() => setExportStatus(''), 3000)
   }
 
   const handleSignOut = async () => {
@@ -324,6 +338,59 @@ export default function Settings() {
           </p>
         </CardContent>
       </Card>
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => { setShowDeleteModal(false); setDeletePassword(''); setDeleteError('') }}
+        title="Tüm Verileri Sil"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div
+            className="flex items-start gap-3 rounded-lg"
+            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', padding: '0.875rem' }}
+          >
+            <AlertTriangle size={18} className="text-red-400 flex-shrink-0" style={{ marginTop: '0.1rem' }} />
+            <p className="text-sm text-red-400">
+              Bu işlem <strong>geri alınamaz</strong>. Tüm öğün, tarif, değişim ve kilo verileri kalıcı olarak silinir.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label className="text-sm text-[var(--text-secondary)]">
+              Devam etmek için <strong className="text-[var(--text-primary)]">delete-all-data</strong> yaz
+            </label>
+            <input
+              type="text"
+              value={deletePassword}
+              onChange={(e) => { setDeletePassword(e.target.value); setDeleteError('') }}
+              onKeyDown={(e) => e.key === 'Enter' && handleConfirmDelete()}
+              placeholder="delete-all-data"
+              autoFocus
+              className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-red-400 transition-colors"
+            />
+            {deleteError && (
+              <p className="text-sm text-red-400">{deleteError}</p>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <Button
+              variant="danger"
+              onClick={handleConfirmDelete}
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.625rem', paddingBottom: '0.625rem' }}
+            >
+              <Trash2 size={16} />
+              Evet, Sil
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => { setShowDeleteModal(false); setDeletePassword(''); setDeleteError('') }}
+              style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '0.625rem', paddingBottom: '0.625rem' }}
+            >
+              İptal
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
