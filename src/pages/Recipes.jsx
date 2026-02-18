@@ -183,7 +183,7 @@ export default function Recipes() {
         disabled={filteredRecipes.length === 0}
       >
         <Shuffle size={24} />
-        ACIKTIM! Bana bir tarif öner
+        ACIKTIM!
       </Button>
 
       <div className="flex flex-col md:flex-row md:flex-wrap" style={{ gap: '1rem' }}>
@@ -279,11 +279,15 @@ export default function Recipes() {
                     <CardTitle style={{ margin: 0 }}>{recipe.title}</CardTitle>
                     {category && (
                       <span
-                        className="rounded-full text-xs shrink-0"
                         style={{
-                          backgroundColor: category.color + '20',
+                          display: 'inline-block',
+                          flexShrink: 0,
+                          backgroundColor: category.color + '25',
                           color: category.color,
-                          padding: '0.375rem 0.75rem',
+                          border: `1px solid ${category.color}50`,
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '999px',
+                          fontSize: '0.75rem',
                           marginLeft: '0.75rem'
                         }}
                       >
@@ -458,14 +462,19 @@ export default function Recipes() {
       >
         {randomRecipe && (
           <div className="space-y-4">
-            <div className="text-center">
+            <div style={{ textAlign: 'center' }}>
               <h3 className="text-2xl font-bold text-[var(--accent)]">{randomRecipe.title}</h3>
               {getCategoryById(randomRecipe.category_id) && (
                 <span
-                  className="inline-block px-3 py-1 rounded-full text-sm mt-2"
                   style={{
-                    backgroundColor: getCategoryById(randomRecipe.category_id).color + '20',
-                    color: getCategoryById(randomRecipe.category_id).color
+                    display: 'inline-block',
+                    marginTop: '0.5rem',
+                    padding: '0.25rem 0.875rem',
+                    borderRadius: '999px',
+                    fontSize: '0.8125rem',
+                    backgroundColor: getCategoryById(randomRecipe.category_id).color + '25',
+                    color: getCategoryById(randomRecipe.category_id).color,
+                    border: `1px solid ${getCategoryById(randomRecipe.category_id).color}50`
                   }}
                 >
                   {getCategoryById(randomRecipe.category_id).name}
