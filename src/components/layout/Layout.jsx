@@ -25,7 +25,7 @@ export default function Layout() {
           paddingBottom: '5rem'
         }}
       >
-        <div style={{ padding: '1.5rem', maxWidth: '72rem', margin: '0 auto' }}>
+        <div style={{ padding: '1.5rem', maxWidth: '72rem', margin: '0 auto', overflowX: 'hidden' }}>
           <Outlet />
         </div>
       </div>

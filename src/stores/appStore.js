@@ -169,6 +169,17 @@ const useAppStore = create(
           const { error } = await supabase.from(name).upsert(data, { onConflict })
           if (error) throw new Error(`${name}: ${error.message}`)
         }
+
+        // Ayarları da sync et
+        const settingsToSync = [
+          { key: 'weightTarget', value: state.weightTarget },
+          { key: 'waterTargetDefault', value: state.waterTargetDefault },
+          { key: 'waterGlassVolumeMl', value: state.waterGlassVolumeMl }
+        ].filter(s => s.value !== null && s.value !== undefined)
+        if (settingsToSync.length) {
+          const { error } = await supabase.from('app_settings').upsert(settingsToSync, { onConflict: 'key' })
+          if (error) console.error('app_settings sync error:', error)
+        }
       },
 
       // CRUD Operations with Supabase sync
