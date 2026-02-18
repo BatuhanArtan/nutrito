@@ -6,7 +6,9 @@ export default function Card({ children, className, ...props }) {
       className={cn('rounded-xl', className)}
       style={{
         backgroundColor: 'var(--bg-secondary)',
-        padding: '1rem'
+        padding: '1rem',
+        overflow: 'hidden',
+        minWidth: 0
       }}
       {...props}
     >
