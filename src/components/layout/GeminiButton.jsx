@@ -1,9 +1,21 @@
 import { Sparkles } from 'lucide-react'
 
+const WEB_URL = 'https://gemini.google.com/gem/a445a7ad3082/39929244a9227eab'
+const ANDROID_INTENT = `intent://gemini.google.com/gem/a445a7ad3082/39929244a9227eab#Intent;scheme=https;package=com.google.android.apps.bard;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(WEB_URL)};end`
+
 export default function GeminiButton() {
+  const handleClick = (e) => {
+    const isAndroid = /Android/i.test(navigator.userAgent)
+    if (isAndroid) {
+      e.preventDefault()
+      window.location.href = ANDROID_INTENT
+    }
+  }
+
   return (
     <a
-      href="https://gemini.google.com/gem/a445a7ad3082/39929244a9227eab"
+      href={WEB_URL}
+      onClick={handleClick}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50
