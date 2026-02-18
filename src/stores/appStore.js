@@ -256,6 +256,9 @@ const useAppStore = create(
           if (error) console.error('Error adding recipe:', error)
           else set((state) => ({ recipes: state.recipes.map(r => r.id === newRecipe.id ? data : r) }))
         }
+
+        await get().addFood({ name: newRecipe.title, default_unit_id: null, recipe_id: newRecipe.id })
+
         return newRecipe
       },
 
@@ -268,9 +271,17 @@ const useAppStore = create(
           const { error } = await supabase.from('recipes').update(updates).eq('id', id)
           if (error) console.error('Error updating recipe:', error)
         }
+
+        if (updates.title) {
+          const linkedFood = get().foods.find(f => f.recipe_id === id)
+          if (linkedFood) await get().updateFood(linkedFood.id, { name: updates.title })
+        }
       },
 
       deleteRecipe: async (id) => {
+        const linkedFood = get().foods.find(f => f.recipe_id === id)
+        if (linkedFood) await get().deleteFood(linkedFood.id)
+
         set((state) => ({ recipes: state.recipes.filter(r => r.id !== id) }))
 
         if (isSupabaseConfigured()) {

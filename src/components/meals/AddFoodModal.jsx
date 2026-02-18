@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, BookOpen } from 'lucide-react'
 import useAppStore from '../../stores/appStore'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
@@ -201,12 +201,15 @@ export default function AddFoodModal({ isOpen, onClose, date, mealType }) {
                 <button
                   key={item.id}
                   onClick={() => handleSelectItem(item)}
-                  className="w-full text-left rounded-lg bg-[var(--bg-tertiary)] hover:bg-[#3a3a3a] transition-colors"
+                  className="w-full text-left rounded-lg bg-[var(--bg-tertiary)] hover:bg-[#3a3a3a] transition-colors flex items-center gap-2"
                   style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
                 >
-                  <span className="text-[var(--text-primary)]">
+                  <span className="text-[var(--text-primary)] flex-1">
                     {itemType === 'food' ? item.name : item.title}
                   </span>
+                  {itemType === 'food' && item.recipe_id && (
+                    <BookOpen size={13} className="text-[var(--accent)] flex-shrink-0" />
+                  )}
                 </button>
               ))
             )}

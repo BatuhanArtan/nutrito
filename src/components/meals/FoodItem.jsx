@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Trash2, ArrowLeftRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Trash2, ArrowLeftRight, BookOpen } from 'lucide-react'
 import useAppStore from '../../stores/appStore'
 import Button from '../ui/Button'
 import ExchangeModal from './ExchangeModal'
@@ -7,6 +8,7 @@ import ExchangeModal from './ExchangeModal'
 export default function FoodItem({ item }) {
   const [showExchangeModal, setShowExchangeModal] = useState(false)
   const deleteMealItem = useAppStore((state) => state.deleteMealItem)
+  const navigate = useNavigate()
 
   const displayName = item.food?.name || item.recipe?.title || 'Bilinmeyen'
   const unitName = item.unit?.abbreviation || item.unit?.name || ''
@@ -34,6 +36,24 @@ export default function FoodItem({ item }) {
             <ArrowLeftRight size={14} className="text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
           )}
         </button>
+
+        {item.food?.recipe_id && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              navigate(`/recipes?id=${item.food.recipe_id}`)
+            }}
+            title="Tarife git"
+            className="flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
+            style={{ position: 'relative', zIndex: 1 }}
+          >
+            <BookOpen size={14} className="text-[var(--accent)]" />
+          </Button>
+        )}
 
         <Button
           type="button"

@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Plus, Trash2, Edit2, Search, Shuffle, ChevronDown, ChevronUp } from 'lucide-react'
 import useAppStore from '../stores/appStore'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
@@ -33,6 +34,17 @@ export default function Recipes() {
   const [categoryName, setCategoryName] = useState('')
   const [categoryColor, setCategoryColor] = useState('#e07a5f')
   const [addingCategoryForRecipe, setAddingCategoryForRecipe] = useState(false)
+
+  const [searchParams] = useSearchParams()
+  useEffect(() => {
+    const targetId = searchParams.get('id')
+    if (!targetId) return
+    setExpandedRecipes((prev) => new Set([...prev, targetId]))
+    setTimeout(() => {
+      const el = document.getElementById(`recipe-${targetId}`)
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 100)
+  }, [searchParams])
 
   const filteredRecipes = useMemo(() => {
     return recipes.filter((recipe) => {
@@ -256,7 +268,7 @@ export default function Recipes() {
             const isExpanded = expandedRecipes.has(recipe.id)
 
             return (
-              <Card key={recipe.id}>
+              <Card key={recipe.id} id={`recipe-${recipe.id}`}>
                 <CardHeader>
                   <div className="flex items-center flex-wrap" style={{ gap: '0.5rem' }}>
                     <CardTitle style={{ margin: 0, marginRight: 0 }}>{recipe.title}</CardTitle>

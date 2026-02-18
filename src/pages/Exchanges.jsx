@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Plus, Trash2, Edit2, ArrowRight, Search } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Plus, Trash2, Edit2, ArrowRight, Search, BookOpen } from 'lucide-react'
 import useAppStore from '../stores/appStore'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
@@ -16,6 +17,8 @@ export default function Exchanges() {
   const deleteFood = useAppStore((state) => state.deleteFood)
   const addExchange = useAppStore((state) => state.addExchange)
   const deleteExchange = useAppStore((state) => state.deleteExchange)
+
+  const navigate = useNavigate()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [showFoodModal, setShowFoodModal] = useState(false)
@@ -205,6 +208,16 @@ export default function Exchanges() {
                     )}
                   </CardTitle>
                   <div className="flex gap-2">
+                    {food.recipe_id && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(`/recipes?id=${food.recipe_id}`)}
+                        title="Tarife git"
+                      >
+                        <BookOpen size={16} className="text-[var(--accent)]" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"
