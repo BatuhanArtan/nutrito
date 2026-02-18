@@ -91,10 +91,16 @@ const useAppStore = create(
             supabase.from('weight_logs').select('*').order('date', { ascending: false })
           ])
 
+          const migrateEx = (e) => {
+            if (e.items && e.items.length > 0) return e
+            if (e.equivalent_food_id) return { ...e, items: [{ equivalent_food_id: e.equivalent_food_id, quantity: e.quantity, unit_id: e.unit_id }] }
+            return { ...e, items: [] }
+          }
+
           set({
             units: (units?.length ? units : DEFAULT_UNITS),
             foods: foods || [],
-            exchanges: exchanges || [],
+            exchanges: (exchanges || []).map(migrateEx),
             recipes: recipes || [],
             recipeCategories: categories || [],
             dailyMeals: dailyMeals || [],
@@ -117,7 +123,15 @@ const useAppStore = create(
           { name: 'units', data: state.units, onConflict: 'id' },
           { name: 'recipe_categories', data: state.recipeCategories, onConflict: 'id' },
           { name: 'foods', data: state.foods, onConflict: 'id' },
-          { name: 'food_exchanges', data: state.exchanges, onConflict: 'id' },
+          { name: 'food_exchanges', data: state.exchanges.map(e => {
+            const firstItem = (e.items || [])[0] || {}
+            return {
+              ...e,
+              equivalent_food_id: e.equivalent_food_id || firstItem.equivalent_food_id || null,
+              quantity: e.quantity ?? firstItem.quantity ?? null,
+              unit_id: e.unit_id || firstItem.unit_id || null
+            }
+          }), onConflict: 'id' },
           { name: 'recipes', data: state.recipes, onConflict: 'id' },
           { name: 'daily_meals', data: state.dailyMeals, onConflict: 'id' },
           { name: 'meal_items', data: state.mealItems, onConflict: 'id' },
@@ -213,9 +227,16 @@ const useAppStore = create(
         set((state) => ({ exchanges: [...state.exchanges, newExchange] }))
 
         if (isSupabaseConfigured()) {
-          const { data, error } = await supabase.from('food_exchanges').insert(newExchange).select().single()
+          const firstItem = newExchange.items[0] || {}
+          const supabaseExchange = {
+            ...newExchange,
+            equivalent_food_id: firstItem.equivalent_food_id || null,
+            quantity: firstItem.quantity || null,
+            unit_id: firstItem.unit_id || null
+          }
+          const { data, error } = await supabase.from('food_exchanges').insert(supabaseExchange).select().single()
           if (error) console.error('Error adding exchange:', error)
-          else set((state) => ({ exchanges: state.exchanges.map(e => e.id === newExchange.id ? data : e) }))
+          else set((state) => ({ exchanges: state.exchanges.map(e => e.id === newExchange.id ? { ...data, items: newExchange.items } : e) }))
         }
         return newExchange
       },
