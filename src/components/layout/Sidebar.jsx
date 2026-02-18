@@ -47,7 +47,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-[var(--bg-tertiary)]">
         <p className="text-xs text-[var(--text-secondary)] text-center">
-          Nutrito v1.0
+          Nutrito v{__APP_VERSION__}
         </p>
       </div>
     </aside>
