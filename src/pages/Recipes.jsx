@@ -226,23 +226,26 @@ export default function Recipes() {
           {recipeCategories.map((category) => (
             <div
               key={category.id}
-              className="flex items-center rounded-full text-sm"
               style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
                 backgroundColor: category.color + '20',
                 color: category.color,
-                paddingLeft: '0.75rem',
-                paddingRight: '0.5rem',
-                paddingTop: '0.375rem',
-                paddingBottom: '0.375rem',
-                gap: '0.375rem',
-                margin: 0
+                border: `1px solid ${category.color}50`,
+                padding: '0.3rem 0.5rem 0.3rem 0.875rem',
+                borderRadius: '999px',
+                fontSize: '0.8125rem',
+                fontWeight: 500
               }}
             >
               <span>{category.name}</span>
               <button
                 type="button"
                 onClick={() => handleDeleteCategory(category.id)}
-                className="hover:opacity-70 flex-shrink-0"
+                style={{ display: 'flex', alignItems: 'center', opacity: 0.6, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: '0.1rem' }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
               >
                 <Trash2 size={12} />
               </button>

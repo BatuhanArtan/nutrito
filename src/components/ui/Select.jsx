@@ -17,12 +17,17 @@ export default function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={cn(
-          'bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2',
-          'text-[var(--text-primary)] focus:border-[var(--accent)] transition-colors',
-          'appearance-none cursor-pointer',
-          className
-        )}
+        className={cn('focus:border-[var(--accent)] transition-colors', className)}
+        style={{
+          backgroundColor: 'var(--bg-tertiary)',
+          border: '1px solid var(--bg-tertiary)',
+          borderRadius: '0.5rem',
+          padding: '0.5rem 0.75rem',
+          color: 'var(--text-primary)',
+          appearance: 'none',
+          cursor: 'pointer',
+          width: '100%'
+        }}
         {...props}
       >
         <option value="" disabled>{placeholder}</option>
