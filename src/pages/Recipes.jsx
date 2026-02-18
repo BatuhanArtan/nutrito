@@ -461,7 +461,7 @@ export default function Recipes() {
         className="max-w-lg"
       >
         {randomRecipe && (
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div style={{ textAlign: 'center' }}>
               <h3 className="text-2xl font-bold text-[var(--accent)]">{randomRecipe.title}</h3>
               {getCategoryById(randomRecipe.category_id) && (
@@ -500,7 +500,7 @@ export default function Recipes() {
               </div>
             )}
 
-            <Button onClick={handleHungry} className="w-full">
+            <Button onClick={handleHungry} style={{ width: '100%', marginTop: '0.5rem' }}>
               <Shuffle size={18} />
               Başka bir tarif öner
             </Button>

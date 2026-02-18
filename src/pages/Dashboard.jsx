@@ -83,6 +83,7 @@ export default function Dashboard() {
 
   const handleCopyFromPrevious = async () => {
     const prev = getPreviousDay(currentDate)
+    if (!confirm(`Önceki günün (${prev}) öğünleri bugüne eklenecek. Devam edilsin mi?`)) return
     setCopyLoading(true)
     setCopyStatus('')
     try {
@@ -98,6 +99,7 @@ export default function Dashboard() {
 
   const handleCopyFromDate = async () => {
     if (!copyFromDate) return
+    if (!confirm(`${copyFromDate} tarihinin öğünleri bugüne eklenecek. Devam edilsin mi?`)) return
     setCopyLoading(true)
     setCopyStatus('')
     try {
