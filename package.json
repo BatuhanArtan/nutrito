@@ -1,6 +1,6 @@
 {
   "name": "nutrito",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.js",
