@@ -103,7 +103,7 @@ export default function MealCard({ date, mealType, title }) {
               Henüz besin eklenmemiş
             </p>
           ) : (
-            <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0 }}>
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0, width: '100%', overflow: 'hidden' }}>
               {mealItemsForCard.map((item) => (
                 <FoodItem key={item.id} item={item} />
               ))}

@@ -57,7 +57,35 @@ export default function FoodItem({ item }) {
           )}
         </button>
 
-        {item.food?.recipe_id && (
+        <div className="flex items-center flex-shrink-0" style={{ gap: '0' }}>
+          {item.food?.recipe_id && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                navigate(`/recipes?id=${item.food.recipe_id}`)
+              }}
+              title="Tarife git"
+              className="opacity-70 group-hover:opacity-100 transition-opacity"
+            >
+              <BookOpen size={14} className="text-[var(--accent)]" />
+            </Button>
+          )}
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={handleDuplicate}
+            title="Kopyala"
+            className="opacity-0 group-hover:opacity-70 hover:!opacity-100 transition-opacity hidden-mobile"
+          >
+            <Copy size={14} className="text-[var(--text-secondary)]" />
+          </Button>
+
           <Button
             type="button"
             variant="ghost"
@@ -65,42 +93,13 @@ export default function FoodItem({ item }) {
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
-              navigate(`/recipes?id=${item.food.recipe_id}`)
+              handleDelete()
             }}
-            title="Tarife git"
-            className="flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
-            style={{ position: 'relative', zIndex: 1 }}
+            className="opacity-70 group-hover:opacity-100 transition-opacity"
           >
-            <BookOpen size={14} className="text-[var(--accent)]" />
+            <Trash2 size={14} className="text-red-400" />
           </Button>
-        )}
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={handleDuplicate}
-          title="Kopyala"
-          className="flex-shrink-0 opacity-0 group-hover:opacity-70 hover:!opacity-100 transition-opacity"
-          style={{ position: 'relative', zIndex: 1 }}
-        >
-          <Copy size={14} className="text-[var(--text-secondary)]" />
-        </Button>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            handleDelete()
-          }}
-          className="flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
-          style={{ position: 'relative', zIndex: 1, marginLeft: '0.25rem' }}
-        >
-          <Trash2 size={14} className="text-red-400" />
-        </Button>
+        </div>
       </li>
 
       {item.food && (

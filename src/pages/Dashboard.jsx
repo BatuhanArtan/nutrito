@@ -244,6 +244,11 @@ export default function Dashboard() {
             grid-template-columns: repeat(2, 1fr) !important;
           }
         }
+        @media (max-width: 767px) {
+          .hidden-mobile {
+            display: none !important;
+          }
+        }
       `}</style>
     </div>
   )
