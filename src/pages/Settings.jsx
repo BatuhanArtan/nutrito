@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Database, Trash2, Download, Upload, Droplets, CloudUpload, LogOut } from 'lucide-react'
+import { Database, Trash2, Download, Upload, Droplets, CloudUpload, LogOut, Target } from 'lucide-react'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import useAppStore from '../stores/appStore'
@@ -22,6 +22,8 @@ export default function Settings() {
   const setWaterTargetDefault = useAppStore((state) => state.setWaterTargetDefault)
   const waterGlassVolumeMl = useAppStore((state) => state.waterGlassVolumeMl)
   const setWaterGlassVolumeMl = useAppStore((state) => state.setWaterGlassVolumeMl)
+  const weightTarget = useAppStore((state) => state.weightTarget)
+  const setWeightTarget = useAppStore((state) => state.setWeightTarget)
 
   const handleExport = () => {
     const data = {
@@ -239,6 +241,43 @@ export default function Settings() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
+            <Target size={20} className="text-[var(--accent)]" />
+            Kilo Hedefi
+          </CardTitle>
+        </CardHeader>
+        <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <label className="text-sm text-[var(--text-secondary)]">Hedef kilo (kg)</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={0}
+              max={500}
+              step={0.1}
+              value={weightTarget ?? ''}
+              onChange={(e) => setWeightTarget(e.target.value)}
+              placeholder="örn: 70"
+              className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-[var(--accent)] transition-colors w-28"
+            />
+            <span className="text-sm text-[var(--text-secondary)]">kg</span>
+            {weightTarget && (
+              <button
+                type="button"
+                onClick={() => setWeightTarget(null)}
+                className="text-sm text-[var(--text-secondary)] hover:text-red-400 transition-colors"
+              >
+                Kaldır
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-[var(--text-secondary)]">
+            Kilo grafiğinde hedefe olan ilerlemen gösterilir.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <Droplets size={20} className="text-blue-400" />
             Su Takibi Ayarları
           </CardTitle>
@@ -281,7 +320,7 @@ export default function Settings() {
             Nutrito - Kişisel diyet ve beslenme takip uygulaması
           </p>
           <p className="text-sm text-[var(--text-secondary)]" style={{ marginTop: '0.5rem' }}>
-            Versiyon 1.0.0
+            Versiyon {__APP_VERSION__}
           </p>
         </CardContent>
       </Card>

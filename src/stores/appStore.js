@@ -52,6 +52,10 @@ const useAppStore = create(
       waterGlassVolumeMl: 200,
       setWaterGlassVolumeMl: (n) => set({ waterGlassVolumeMl: Math.max(50, Math.min(500, Number(n) || 200)) }),
 
+      // Hedef kilo
+      weightTarget: null,
+      setWeightTarget: (v) => set({ weightTarget: v === '' || v === null ? null : Math.max(0, Number(v)) }),
+
       // Loading state
       isLoading: false,
       setIsLoading: (loading) => set({ isLoading: loading }),
@@ -548,7 +552,8 @@ const useAppStore = create(
         waterLogs: state.waterLogs,
         weightLogs: state.weightLogs,
         waterTargetDefault: state.waterTargetDefault,
-        waterGlassVolumeMl: state.waterGlassVolumeMl
+        waterGlassVolumeMl: state.waterGlassVolumeMl,
+        weightTarget: state.weightTarget
       }),
       merge: (persisted, current) => ({
         ...current,
