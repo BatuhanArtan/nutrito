@@ -84,8 +84,7 @@ const useAppStore = create(
             { data: dailyMeals },
             { data: mealItems },
             { data: waterLogs },
-            { data: weightLogs },
-            { data: appSettings }
+            { data: weightLogs }
           ] = await Promise.all([
             supabase.from('units').select('*').order('name'),
             supabase.from('foods').select('*').order('name'),
@@ -95,9 +94,11 @@ const useAppStore = create(
             supabase.from('daily_meals').select('*'),
             supabase.from('meal_items').select('*'),
             supabase.from('water_logs').select('*').order('date', { ascending: false }),
-            supabase.from('weight_logs').select('*').order('date', { ascending: false }),
-            supabase.from('app_settings').select('*')
+            supabase.from('weight_logs').select('*').order('date', { ascending: false })
           ])
+
+          // app_settings ayrı çek — tablo yoksa diğer verileri etkilemesin
+          const { data: appSettings } = await supabase.from('app_settings').select('*')
 
           const migrateEx = (e) => {
             if (e.items && e.items.length > 0) return e
