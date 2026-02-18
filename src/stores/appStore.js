@@ -54,7 +54,13 @@ const useAppStore = create(
 
       // Hedef kilo
       weightTarget: null,
-      setWeightTarget: (v) => set({ weightTarget: v === '' || v === null ? null : Math.max(0, Number(v)) }),
+      setWeightTarget: async (v) => {
+        const val = v === '' || v === null ? null : Math.max(0, Number(v))
+        set({ weightTarget: val })
+        if (isSupabaseConfigured()) {
+          await supabase.from('app_settings').upsert({ key: 'weightTarget', value: val }, { onConflict: 'key' })
+        }
+      },
 
       // Loading state
       isLoading: false,
@@ -78,7 +84,8 @@ const useAppStore = create(
             { data: dailyMeals },
             { data: mealItems },
             { data: waterLogs },
-            { data: weightLogs }
+            { data: weightLogs },
+            { data: appSettings }
           ] = await Promise.all([
             supabase.from('units').select('*').order('name'),
             supabase.from('foods').select('*').order('name'),
@@ -88,7 +95,8 @@ const useAppStore = create(
             supabase.from('daily_meals').select('*'),
             supabase.from('meal_items').select('*'),
             supabase.from('water_logs').select('*').order('date', { ascending: false }),
-            supabase.from('weight_logs').select('*').order('date', { ascending: false })
+            supabase.from('weight_logs').select('*').order('date', { ascending: false }),
+            supabase.from('app_settings').select('*')
           ])
 
           const migrateEx = (e) => {
@@ -96,6 +104,8 @@ const useAppStore = create(
             if (e.equivalent_food_id) return { ...e, items: [{ equivalent_food_id: e.equivalent_food_id, quantity: e.quantity, unit_id: e.unit_id }] }
             return { ...e, items: [] }
           }
+
+          const settingsMap = Object.fromEntries((appSettings || []).map(s => [s.key, s.value]))
 
           set({
             units: (units?.length ? units : DEFAULT_UNITS),
@@ -106,7 +116,8 @@ const useAppStore = create(
             dailyMeals: dailyMeals || [],
             mealItems: mealItems || [],
             waterLogs: waterLogs || [],
-            weightLogs: weightLogs || []
+            weightLogs: weightLogs || [],
+            ...(settingsMap.weightTarget !== undefined && { weightTarget: settingsMap.weightTarget })
           })
         } catch (error) {
           console.error('Error initializing data:', error)

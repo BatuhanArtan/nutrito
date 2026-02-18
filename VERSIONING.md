@@ -30,3 +30,5 @@ Sidebar'daki versiyon build sırasında otomatik okunur.
 | 1.3.0 | 2026-02 | Hedef kilo (ayarlar + grafik ilerleme barı + hedef çizgisi); kilo geçmişi düzenleme/silme paneli |
 | 1.4.0 | 2026-02 | Öğünler arası drag & drop; besin duplicate butonu |
 
+|| 1.5.0 | 2026-02 | Beslenme programını PNG görüntü olarak kaydetme (html-to-image) |
+|| 1.6.0 | 2026-02 | Mobile layout düzeltmeleri; hedef kilo Supabase senkronizasyonu (app_settings) |

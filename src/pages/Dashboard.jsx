@@ -146,43 +146,41 @@ export default function Dashboard() {
       </div>
 
       {/* Öğün aktar butonları */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
         <Button
           variant="secondary"
           size="sm"
           onClick={handleCopyFromPrevious}
           disabled={copyLoading}
-          style={{ paddingLeft: '0.875rem', paddingRight: '0.875rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+          style={{ padding: '0.5rem 0.5rem', justifyContent: 'center', textAlign: 'center', whiteSpace: 'normal', lineHeight: '1.2' }}
         >
-          <Copy size={16} style={{ marginRight: '0.375rem' }} />
-          Önceki günden aktar
+          <Copy size={15} style={{ marginRight: '0.3rem', flexShrink: 0 }} />
+          Önceki Gün
         </Button>
         <Button
           variant="secondary"
           size="sm"
           onClick={openDateModal}
           disabled={copyLoading}
-          style={{ paddingLeft: '0.875rem', paddingRight: '0.875rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+          style={{ padding: '0.5rem 0.5rem', justifyContent: 'center', textAlign: 'center', whiteSpace: 'normal', lineHeight: '1.2' }}
         >
-          <Calendar size={16} style={{ marginRight: '0.375rem' }} />
-          Tarihten aktar
+          <Calendar size={15} style={{ marginRight: '0.3rem', flexShrink: 0 }} />
+          Tarihten Aktar
         </Button>
         <Button
           variant="secondary"
           size="sm"
           onClick={handleCapture}
           disabled={captureStatus === 'loading'}
-          style={{ paddingLeft: '0.875rem', paddingRight: '0.875rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+          style={{ padding: '0.5rem 0.5rem', justifyContent: 'center', textAlign: 'center', whiteSpace: 'normal', lineHeight: '1.2' }}
         >
-          <Camera size={16} style={{ marginRight: '0.375rem' }} />
-          {captureStatus === 'loading' ? 'Kaydediliyor...' : captureStatus === 'done' ? '✓ İndirildi' : captureStatus === 'error' ? '✗ Hata (konsolu aç)' : 'Görüntü Al'}
+          <Camera size={15} style={{ marginRight: '0.3rem', flexShrink: 0 }} />
+          {captureStatus === 'loading' ? 'Kaydediliyor...' : captureStatus === 'done' ? '✓ İndirildi' : captureStatus === 'error' ? '✗ Hata' : 'Görüntü Al'}
         </Button>
-        {copyStatus && (
-          <span className="text-sm text-[var(--text-secondary)]" style={{ marginLeft: '0.25rem' }}>
-            {copyStatus}
-          </span>
-        )}
       </div>
+      {copyStatus && (
+        <span className="text-sm text-[var(--text-secondary)]">{copyStatus}</span>
+      )}
 
       {/* Meals Grid — capture target */}
       <div ref={captureRef} style={{ padding: '1rem', borderRadius: '0.75rem', background: 'var(--bg-secondary)' }}>
