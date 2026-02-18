@@ -315,10 +315,10 @@ export default function Recipes() {
                 </CardHeader>
 
                 {isExpanded && (
-                  <CardContent className="space-y-4 border-t border-[var(--bg-tertiary)] pt-4 mt-2">
+                  <CardContent style={{ borderTop: '1px solid var(--bg-tertiary)', paddingTop: '1rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     {recipe.ingredients && (
                       <div>
-                        <h4 className="font-medium text-[var(--text-primary)] mb-2">Malzemeler</h4>
+                        <h4 className="font-medium text-[var(--text-primary)]" style={{ marginBottom: '0.375rem' }}>Malzemeler</h4>
                         <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap">
                           {recipe.ingredients}
                         </p>
@@ -326,7 +326,7 @@ export default function Recipes() {
                     )}
                     {recipe.instructions && (
                       <div>
-                        <h4 className="font-medium text-[var(--text-primary)] mb-2">Yapılışı</h4>
+                        <h4 className="font-medium text-[var(--text-primary)]" style={{ marginBottom: '0.375rem' }}>Yapılışı</h4>
                         <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap">
                           {recipe.instructions}
                         </p>
@@ -484,7 +484,7 @@ export default function Recipes() {
 
             {randomRecipe.ingredients && (
               <div>
-                <h4 className="font-medium text-[var(--text-primary)] mb-2">Malzemeler</h4>
+                <h4 className="font-medium text-[var(--text-primary)]" style={{ marginBottom: '0.375rem' }}>Malzemeler</h4>
                 <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap">
                   {randomRecipe.ingredients}
                 </p>
@@ -493,7 +493,7 @@ export default function Recipes() {
 
             {randomRecipe.instructions && (
               <div>
-                <h4 className="font-medium text-[var(--text-primary)] mb-2">Yapılışı</h4>
+                <h4 className="font-medium text-[var(--text-primary)]" style={{ marginBottom: '0.375rem' }}>Yapılışı</h4>
                 <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap">
                   {randomRecipe.instructions}
                 </p>
