@@ -270,8 +270,13 @@ export default function Recipes() {
             return (
               <Card key={recipe.id} id={`recipe-${recipe.id}`}>
                 <CardHeader>
-                  <div className="flex items-center flex-wrap" style={{ gap: '0.5rem' }}>
-                    <CardTitle style={{ margin: 0, marginRight: 0 }}>{recipe.title}</CardTitle>
+                  <button
+                    type="button"
+                    className="flex items-center flex-wrap flex-1 text-left"
+                    style={{ gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0, minWidth: 0 }}
+                    onClick={() => toggleRecipeExpand(recipe.id)}
+                  >
+                    <CardTitle style={{ margin: 0 }}>{recipe.title}</CardTitle>
                     {category && (
                       <span
                         className="rounded-full text-xs shrink-0"
@@ -285,26 +290,20 @@ export default function Recipes() {
                         {category.name}
                       </span>
                     )}
-                  </div>
+                    {isExpanded ? <ChevronUp size={14} className="text-[var(--text-secondary)] shrink-0" /> : <ChevronDown size={14} className="text-[var(--text-secondary)] shrink-0" />}
+                  </button>
                   <div className="flex gap-2">
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => toggleRecipeExpand(recipe.id)}
-                    >
-                      {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEditRecipe(recipe)}
+                      onClick={(e) => { e.stopPropagation(); handleEditRecipe(recipe) }}
                     >
                       <Edit2 size={16} />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDeleteRecipe(recipe.id)}
+                      onClick={(e) => { e.stopPropagation(); handleDeleteRecipe(recipe.id) }}
                     >
                       <Trash2 size={16} className="text-red-400" />
                     </Button>

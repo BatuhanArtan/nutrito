@@ -41,7 +41,7 @@ export default function FoodItem({ item }) {
         draggable
         onDragStart={handleDragStart}
         className="flex items-center justify-between bg-[var(--bg-tertiary)] rounded-lg group"
-        style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', cursor: 'grab' }}
+        style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', cursor: 'grab', overflow: 'hidden', minWidth: 0 }}
       >
         <button
           type="button"

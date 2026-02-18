@@ -48,9 +48,21 @@ const useAppStore = create(
 
       // Su ayarları (persist)
       waterTargetDefault: 8,
-      setWaterTargetDefault: (n) => set({ waterTargetDefault: Math.max(1, Math.min(99, Number(n) || 8)) }),
+      setWaterTargetDefault: async (n) => {
+        const val = Math.max(1, Math.min(99, Number(n) || 8))
+        set({ waterTargetDefault: val })
+        if (isSupabaseConfigured()) {
+          await supabase.from('app_settings').upsert({ key: 'waterTargetDefault', value: val }, { onConflict: 'key' })
+        }
+      },
       waterGlassVolumeMl: 200,
-      setWaterGlassVolumeMl: (n) => set({ waterGlassVolumeMl: Math.max(50, Math.min(500, Number(n) || 200)) }),
+      setWaterGlassVolumeMl: async (n) => {
+        const val = Math.max(50, Math.min(500, Number(n) || 200))
+        set({ waterGlassVolumeMl: val })
+        if (isSupabaseConfigured()) {
+          await supabase.from('app_settings').upsert({ key: 'waterGlassVolumeMl', value: val }, { onConflict: 'key' })
+        }
+      },
 
       // Hedef kilo
       weightTarget: null,
@@ -118,7 +130,9 @@ const useAppStore = create(
             mealItems: mealItems || [],
             waterLogs: waterLogs || [],
             weightLogs: weightLogs || [],
-            ...(settingsMap.weightTarget !== undefined && { weightTarget: settingsMap.weightTarget })
+            ...(settingsMap.weightTarget !== undefined && { weightTarget: settingsMap.weightTarget }),
+            ...(settingsMap.waterTargetDefault !== undefined && { waterTargetDefault: settingsMap.waterTargetDefault }),
+            ...(settingsMap.waterGlassVolumeMl !== undefined && { waterGlassVolumeMl: settingsMap.waterGlassVolumeMl })
           })
         } catch (error) {
           console.error('Error initializing data:', error)
