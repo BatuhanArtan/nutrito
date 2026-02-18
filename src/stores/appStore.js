@@ -199,9 +199,10 @@ const useAppStore = create(
       // Food Exchanges
       addExchange: async (exchange) => {
         const newExchange = {
-          ...exchange,
+          food_id: exchange.food_id,
           quantity_left: exchange.quantity_left ?? 1,
           left_unit_id: exchange.left_unit_id || null,
+          items: exchange.items || [],
           id: generateId(),
           created_at: new Date().toISOString()
         }
@@ -447,34 +448,57 @@ const useAppStore = create(
         }
       },
 
+      // Eski tek-item exchange formatını yeni items[] formatına dönüştür
+      _migrateExchange: (e) => {
+        if (e.items && e.items.length > 0) return e
+        if (e.equivalent_food_id) {
+          return {
+            ...e,
+            items: [{ equivalent_food_id: e.equivalent_food_id, quantity: e.quantity, unit_id: e.unit_id }]
+          }
+        }
+        return { ...e, items: [] }
+      },
+
       // Get exchanges for a specific food (hem giden hem gelen / tersinir)
       getExchangesForFood: (foodId) => {
         const { exchanges, foods, units } = get()
+        const migrate = get()._migrateExchange
         const getUnit = (id) => (id ? units.find(u => u.id === id) : null)
         const getFood = (id) => foods.find(f => f.id === id)
         const result = []
-        exchanges.filter(e => e.food_id === foodId).forEach(e => {
+
+        exchanges.map(migrate).filter(e => e.food_id === foodId).forEach(e => {
           result.push({
             id: e.id,
             leftQuantity: e.quantity_left ?? 1,
             leftUnit: getUnit(e.left_unit_id),
-            rightQuantity: e.quantity,
-            rightUnit: getUnit(e.unit_id),
             leftFood: getFood(e.food_id),
-            rightFood: getFood(e.equivalent_food_id)
+            rightItems: e.items.map(item => ({
+              food: getFood(item.equivalent_food_id),
+              quantity: item.quantity,
+              unit: getUnit(item.unit_id)
+            }))
           })
         })
-        exchanges.filter(e => e.equivalent_food_id === foodId).forEach(e => {
-          result.push({
-            id: e.id,
-            leftQuantity: e.quantity,
-            leftUnit: getUnit(e.unit_id),
-            rightQuantity: e.quantity_left ?? 1,
-            rightUnit: getUnit(e.left_unit_id),
-            leftFood: getFood(e.equivalent_food_id),
-            rightFood: getFood(e.food_id)
+
+        exchanges.map(migrate)
+          .filter(e => e.items.some(item => item.equivalent_food_id === foodId))
+          .forEach(e => {
+            const matchingItem = e.items.find(item => item.equivalent_food_id === foodId)
+            result.push({
+              id: `${e.id}-rev`,
+              leftQuantity: matchingItem.quantity,
+              leftUnit: getUnit(matchingItem.unit_id),
+              leftFood: getFood(matchingItem.equivalent_food_id),
+              rightItems: [{
+                food: getFood(e.food_id),
+                quantity: e.quantity_left ?? 1,
+                unit: getUnit(e.left_unit_id)
+              }]
+            })
           })
-        })
+
         return result
       },
 
@@ -529,7 +553,17 @@ const useAppStore = create(
       merge: (persisted, current) => ({
         ...current,
         ...persisted,
-        units: persisted?.units?.length ? persisted.units : (current.units || DEFAULT_UNITS)
+        units: persisted?.units?.length ? persisted.units : (current.units || DEFAULT_UNITS),
+        exchanges: (persisted?.exchanges || []).map(e => {
+          if (e.items && e.items.length > 0) return e
+          if (e.equivalent_food_id) {
+            return {
+              ...e,
+              items: [{ equivalent_food_id: e.equivalent_food_id, quantity: e.quantity, unit_id: e.unit_id }]
+            }
+          }
+          return { ...e, items: [] }
+        })
       })
     }
   )

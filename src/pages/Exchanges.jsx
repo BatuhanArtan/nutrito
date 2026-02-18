@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Trash2, Edit2, ArrowRight, Search, BookOpen } from 'lucide-react'
+import { Plus, Trash2, Edit2, ArrowRight, Search, BookOpen, X } from 'lucide-react'
 import useAppStore from '../stores/appStore'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
@@ -31,9 +31,16 @@ export default function Exchanges() {
 
   const [leftQuantity, setLeftQuantity] = useState('1')
   const [leftUnitId, setLeftUnitId] = useState('')
-  const [equivalentFoodId, setEquivalentFoodId] = useState('')
-  const [exchangeQuantity, setExchangeQuantity] = useState('')
-  const [exchangeUnit, setExchangeUnit] = useState('')
+  const [rightItems, setRightItems] = useState([{ equivalent_food_id: '', quantity: '', unit_id: '' }])
+
+  const addRightItem = () =>
+    setRightItems(prev => [...prev, { equivalent_food_id: '', quantity: '', unit_id: '' }])
+
+  const updateRightItem = (index, field, value) =>
+    setRightItems(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item))
+
+  const removeRightItem = (index) =>
+    setRightItems(prev => prev.filter((_, i) => i !== index))
 
   const filteredFoods = foods.filter((food) =>
     food.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -80,15 +87,18 @@ export default function Exchanges() {
 
   const handleAddExchange = async (e) => {
     e.preventDefault()
-    if (!selectedFoodId || !equivalentFoodId || !exchangeQuantity || !exchangeUnit) return
+    const validItems = rightItems.filter(item => item.equivalent_food_id && item.quantity && item.unit_id)
+    if (!selectedFoodId || validItems.length === 0) return
 
     await addExchange({
       food_id: selectedFoodId,
       quantity_left: parseFloat(leftQuantity) || 1,
       left_unit_id: leftUnitId || null,
-      equivalent_food_id: equivalentFoodId,
-      quantity: parseFloat(exchangeQuantity),
-      unit_id: exchangeUnit
+      items: validItems.map(item => ({
+        equivalent_food_id: item.equivalent_food_id,
+        quantity: parseFloat(item.quantity),
+        unit_id: item.unit_id
+      }))
     })
 
     resetExchangeForm()
@@ -97,9 +107,7 @@ export default function Exchanges() {
   const resetExchangeForm = () => {
     setLeftQuantity('1')
     setLeftUnitId('')
-    setEquivalentFoodId('')
-    setExchangeQuantity('')
-    setExchangeUnit('')
+    setRightItems([{ equivalent_food_id: '', quantity: '', unit_id: '' }])
     setShowExchangeModal(false)
   }
 
@@ -113,31 +121,40 @@ export default function Exchanges() {
     return unit?.abbreviation || unit?.name || ''
   }
 
+  const migrateExchange = (e) => {
+    if (e.items && e.items.length > 0) return e
+    if (e.equivalent_food_id) {
+      return { ...e, items: [{ equivalent_food_id: e.equivalent_food_id, quantity: e.quantity, unit_id: e.unit_id }] }
+    }
+    return { ...e, items: [] }
+  }
+
   const getFoodExchangesWithReverse = (foodId) => {
     const outgoing = exchanges
+      .map(migrateExchange)
       .filter((e) => e.food_id === foodId)
       .map((e) => ({
-        ...e,
+        id: e.id,
         direction: 'outgoing',
         leftQty: e.quantity_left ?? 1,
         leftUnitId: e.left_unit_id,
-        rightQty: e.quantity,
-        rightUnitId: e.unit_id,
         leftFoodId: e.food_id,
-        rightFoodId: e.equivalent_food_id
+        rightItems: e.items
       }))
     const reverse = exchanges
-      .filter((e) => e.equivalent_food_id === foodId)
-      .map((e) => ({
-        ...e,
-        direction: 'reverse',
-        leftQty: e.quantity,
-        leftUnitId: e.unit_id,
-        rightQty: e.quantity_left ?? 1,
-        rightUnitId: e.left_unit_id,
-        leftFoodId: e.equivalent_food_id,
-        rightFoodId: e.food_id
-      }))
+      .map(migrateExchange)
+      .filter((e) => e.items.some(item => item.equivalent_food_id === foodId))
+      .map((e) => {
+        const match = e.items.find(item => item.equivalent_food_id === foodId)
+        return {
+          id: `${e.id}-rev`,
+          direction: 'reverse',
+          leftQty: match.quantity,
+          leftUnitId: match.unit_id,
+          leftFoodId: match.equivalent_food_id,
+          rightItems: [{ equivalent_food_id: e.food_id, quantity: e.quantity_left ?? 1, unit_id: e.left_unit_id }]
+        }
+      })
     return [...outgoing, ...reverse]
   }
 
@@ -251,27 +268,32 @@ export default function Exchanges() {
                     <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0 }}>
                       {foodExchanges.map((exchange) => (
                         <li
-                          key={`${exchange.id}-${exchange.direction}`}
+                          key={exchange.id}
                           className="flex items-center justify-between bg-[var(--bg-tertiary)] rounded-lg"
                           style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
                         >
-                          <div className="flex items-center gap-2 text-sm" style={{ minWidth: 0 }}>
+                          <div className="flex items-center flex-wrap gap-1 text-sm" style={{ minWidth: 0 }}>
                             <span className="text-[var(--text-primary)]">
                               {exchange.leftQty} {getUnitName(exchange.leftUnitId) || 'porsiyon'} {getFoodName(exchange.leftFoodId)}
                             </span>
                             <ArrowRight size={14} className="text-[var(--accent)] flex-shrink-0" />
-                            <span className="text-[var(--text-primary)]">
-                              {exchange.rightQty} {getUnitName(exchange.rightUnitId) || 'porsiyon'} {getFoodName(exchange.rightFoodId)}
-                            </span>
+                            {exchange.rightItems.map((item, idx) => (
+                              <span key={idx} className="text-[var(--text-primary)]">
+                                {idx > 0 && <span className="text-[var(--accent)] mx-1">+ </span>}
+                                {item.quantity} {getUnitName(item.unit_id) || 'porsiyon'} {getFoodName(item.equivalent_food_id)}
+                              </span>
+                            ))}
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteExchange(exchange.id)}
-                            className="flex-shrink-0"
-                          >
-                            <Trash2 size={14} className="text-red-400" />
-                          </Button>
+                          {!exchange.id.endsWith('-rev') && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteExchange(exchange.id)}
+                              className="flex-shrink-0"
+                            >
+                              <Trash2 size={14} className="text-red-400" />
+                            </Button>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -351,36 +373,72 @@ export default function Exchanges() {
             />
           </div>
 
-          <p className="text-sm text-[var(--text-secondary)]" style={{ marginBottom: '0' }}>
-            Eşdeğer (sağ taraf)
-          </p>
-          <Select
-            label="Eşdeğer Besin"
-            value={equivalentFoodId}
-            onChange={setEquivalentFoodId}
-            options={foods
-              .filter((f) => f.id !== selectedFoodId)
-              .map((f) => ({ value: f.id, label: f.name }))}
-            placeholder="Besin seçin"
-          />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <Input
-              label="Miktar"
-              type="number"
-              value={exchangeQuantity}
-              onChange={setExchangeQuantity}
-              placeholder="örn: 4"
-              step="0.5"
-              min="0"
-            />
-            <Select
-              label="Birim"
-              value={exchangeUnit}
-              onChange={setExchangeUnit}
-              options={units.map((u) => ({ value: u.id, label: u.name }))}
-              placeholder="Birim seçin"
-            />
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-[var(--text-secondary)]" style={{ margin: 0 }}>
+              Eşdeğer (sağ taraf)
+            </p>
+            <button
+              type="button"
+              onClick={addRightItem}
+              className="text-sm text-[var(--accent)] hover:underline flex items-center gap-1"
+            >
+              <Plus size={13} /> Besin ekle
+            </button>
           </div>
+
+          {rightItems.map((item, index) => (
+            <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {index > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 border-t border-[var(--bg-tertiary)]" />
+                  <span className="text-xs text-[var(--accent)] font-semibold px-2">+</span>
+                  <div className="flex-1 border-t border-[var(--bg-tertiary)]" />
+                </div>
+              )}
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <Select
+                    label={index === 0 ? 'Eşdeğer Besin' : 'Besin'}
+                    value={item.equivalent_food_id}
+                    onChange={(v) => updateRightItem(index, 'equivalent_food_id', v)}
+                    options={foods
+                      .filter((f) => f.id !== selectedFoodId)
+                      .map((f) => ({ value: f.id, label: f.name }))}
+                    placeholder="Besin seçin"
+                  />
+                </div>
+                {rightItems.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeRightItem(index)}
+                    style={{ marginBottom: '0.125rem' }}
+                  >
+                    <X size={15} className="text-red-400" />
+                  </Button>
+                )}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <Input
+                  label="Miktar"
+                  type="number"
+                  value={item.quantity}
+                  onChange={(v) => updateRightItem(index, 'quantity', v)}
+                  placeholder="örn: 4"
+                  step="0.5"
+                  min="0"
+                />
+                <Select
+                  label="Birim"
+                  value={item.unit_id}
+                  onChange={(v) => updateRightItem(index, 'unit_id', v)}
+                  options={units.map((u) => ({ value: u.id, label: u.name }))}
+                  placeholder="Birim seçin"
+                />
+              </div>
+            </div>
+          ))}
 
           <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
             <Button

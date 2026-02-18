@@ -26,3 +26,4 @@ Sidebar'daki versiyon build sırasında otomatik okunur.
 | 1.0.0 | 2026-02 | İlk yayın |
 | 1.1.0 | 2026-02 | Tariflerden otomatik besin oluşturma; tarifli besinlere tarife-git butonu; versiyonlama sistemi |
 | 1.1.1 | 2026-02 | `npm run dev` çalıştırılınca mevcut dev server otomatik kapatılıyor |
+| 1.2.0 | 2026-02 | Değişimlerde çoklu besin kombinasyonu desteği (ör: 250g et → 200g peynir + 1 yumurta) |

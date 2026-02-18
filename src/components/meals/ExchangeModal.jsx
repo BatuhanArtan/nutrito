@@ -37,15 +37,20 @@ export default function ExchangeModal({ isOpen, onClose, foodId, foodName }) {
               {exchanges.map((exchange) => (
                 <li
                   key={exchange.id}
-                  className="flex items-center bg-[var(--bg-tertiary)] rounded-lg"
-                  style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', gap: '0.5rem' }}
+                  className="flex items-center flex-wrap bg-[var(--bg-tertiary)] rounded-lg gap-1"
+                  style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
                 >
                   <ArrowRight size={14} className="text-[var(--accent)] flex-shrink-0" />
                   <span className="text-[var(--text-primary)]">
-                    {exchange.leftQuantity} {exchange.leftUnit?.name || exchange.leftUnit?.abbreviation || 'porsiyon'} {exchange.leftFood?.name}
-                    {' = '}
-                    {exchange.rightQuantity} {exchange.rightUnit?.name || exchange.rightUnit?.abbreviation || 'porsiyon'} {exchange.rightFood?.name}
+                    {exchange.leftQuantity} {exchange.leftUnit?.abbreviation || exchange.leftUnit?.name || 'porsiyon'} {exchange.leftFood?.name}
                   </span>
+                  <span className="text-[var(--text-secondary)]">=</span>
+                  {(exchange.rightItems || []).map((item, idx) => (
+                    <span key={idx} className="text-[var(--text-primary)]">
+                      {idx > 0 && <span className="text-[var(--accent)] mx-1">+ </span>}
+                      {item.quantity} {item.unit?.abbreviation || item.unit?.name || 'porsiyon'} {item.food?.name}
+                    </span>
+                  ))}
                 </li>
               ))}
             </ul>
