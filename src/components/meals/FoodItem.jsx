@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Trash2, ArrowLeftRight, BookOpen } from 'lucide-react'
+import { Trash2, ArrowLeftRight, BookOpen, Copy } from 'lucide-react'
 import useAppStore from '../../stores/appStore'
 import Button from '../ui/Button'
 import ExchangeModal from './ExchangeModal'
@@ -8,6 +8,7 @@ import ExchangeModal from './ExchangeModal'
 export default function FoodItem({ item }) {
   const [showExchangeModal, setShowExchangeModal] = useState(false)
   const deleteMealItem = useAppStore((state) => state.deleteMealItem)
+  const addMealItem = useAppStore((state) => state.addMealItem)
   const navigate = useNavigate()
 
   const displayName = item.food?.name || item.recipe?.title || 'Bilinmeyen'
@@ -17,11 +18,30 @@ export default function FoodItem({ item }) {
     await deleteMealItem(item.id)
   }
 
+  const handleDuplicate = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    await addMealItem({
+      daily_meal_id: item.daily_meal_id,
+      food_id: item.food_id || null,
+      recipe_id: item.recipe_id || null,
+      quantity: item.quantity,
+      unit_id: item.unit_id || null
+    })
+  }
+
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData('text/plain', item.id)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
   return (
     <>
       <li
+        draggable
+        onDragStart={handleDragStart}
         className="flex items-center justify-between bg-[var(--bg-tertiary)] rounded-lg group"
-        style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+        style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', cursor: 'grab' }}
       >
         <button
           type="button"
@@ -59,13 +79,25 @@ export default function FoodItem({ item }) {
           type="button"
           variant="ghost"
           size="icon"
+          onClick={handleDuplicate}
+          title="Kopyala"
+          className="flex-shrink-0 opacity-0 group-hover:opacity-70 hover:!opacity-100 transition-opacity"
+          style={{ position: 'relative', zIndex: 1 }}
+        >
+          <Copy size={14} className="text-[var(--text-secondary)]" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
             handleDelete()
           }}
           className="flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
-          style={{ position: 'relative', zIndex: 1 }}
+          style={{ position: 'relative', zIndex: 1, marginLeft: '0.25rem' }}
         >
           <Trash2 size={14} className="text-red-400" />
         </Button>

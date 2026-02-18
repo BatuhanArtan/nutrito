@@ -28,3 +28,4 @@ Sidebar'daki versiyon build sırasında otomatik okunur.
 | 1.1.1 | 2026-02 | `npm run dev` çalıştırılınca mevcut dev server otomatik kapatılıyor |
 | 1.2.0 | 2026-02 | Değişimlerde çoklu besin kombinasyonu desteği (ör: 250g et → 200g peynir + 1 yumurta) |
 | 1.3.0 | 2026-02 | Hedef kilo (ayarlar + grafik ilerleme barı + hedef çizgisi); kilo geçmişi düzenleme/silme paneli |
+| 1.4.0 | 2026-02 | Öğünler arası drag & drop; besin duplicate butonu |
