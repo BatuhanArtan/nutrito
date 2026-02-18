@@ -1,9 +1,9 @@
 {
   "name": "nutrito",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev.js",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -24,6 +24,7 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.4",
     "autoprefixer": "^10.4.24",
+    "kill-port": "^2.0.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "vite": "^7.3.1",
