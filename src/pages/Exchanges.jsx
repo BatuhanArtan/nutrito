@@ -6,6 +6,7 @@ import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
+import SearchableSelect from '../components/ui/SearchableSelect'
 import Modal from '../components/ui/Modal'
 
 export default function Exchanges() {
@@ -397,7 +398,7 @@ export default function Exchanges() {
               )}
               <div className="flex items-end gap-2">
                 <div className="flex-1">
-                  <Select
+                  <SearchableSelect
                     label={index === 0 ? 'Eşdeğer Besin' : 'Besin'}
                     value={item.equivalent_food_id}
                     onChange={(v) => updateRightItem(index, 'equivalent_food_id', v)}

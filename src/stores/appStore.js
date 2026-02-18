@@ -91,9 +91,19 @@ const useAppStore = create(
             supabase.from('weight_logs').select('*').order('date', { ascending: false })
           ])
 
+          // recipe_id is local-only; merge back from persisted state after Supabase load
+          const localFoods = get().foods
+          const mergedFoods = (foods || []).map(f => {
+            const local = localFoods.find(lf => lf.id === f.id)
+            return local?.recipe_id ? { ...f, recipe_id: local.recipe_id } : f
+          })
+          // Foods that exist locally with recipe_id but failed to insert to Supabase
+          const supabaseIds = new Set((foods || []).map(f => f.id))
+          const localRecipeFoods = localFoods.filter(f => f.recipe_id && !supabaseIds.has(f.id))
+
           set({
             units: (units?.length ? units : DEFAULT_UNITS),
-            foods: foods || [],
+            foods: [...mergedFoods, ...localRecipeFoods],
             exchanges: exchanges || [],
             recipes: recipes || [],
             recipeCategories: categories || [],
@@ -173,9 +183,13 @@ const useAppStore = create(
         set((state) => ({ foods: [...state.foods, newFood] }))
 
         if (isSupabaseConfigured()) {
-          const { data, error } = await supabase.from('foods').insert(newFood).select().single()
+          // recipe_id is local-only — Supabase foods table may not have this column
+          const { recipe_id, ...supabaseFood } = newFood
+          const { data, error } = await supabase.from('foods').insert(supabaseFood).select().single()
           if (error) console.error('Error adding food:', error)
-          else set((state) => ({ foods: state.foods.map(f => f.id === newFood.id ? data : f) }))
+          else set((state) => ({
+            foods: state.foods.map(f => f.id === newFood.id ? { ...data, recipe_id: newFood.recipe_id } : f)
+          }))
         }
         return newFood
       },
