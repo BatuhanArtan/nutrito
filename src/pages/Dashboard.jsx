@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Copy, Calendar } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { ChevronLeft, ChevronRight, Copy, Calendar, Camera } from 'lucide-react'
+import { toPng } from 'html-to-image'
 import useAppStore from '../stores/appStore'
 import { formatDisplayDate, getToday, mealTypeLabels, mealTypeOrder, toLocalDateStr } from '../lib/utils'
 import Button from '../components/ui/Button'
@@ -18,6 +19,43 @@ export default function Dashboard() {
   const [copyFromDate, setCopyFromDate] = useState('')
   const [copyStatus, setCopyStatus] = useState('')
   const [copyLoading, setCopyLoading] = useState(false)
+  const [captureStatus, setCaptureStatus] = useState('')
+  const captureRef = useRef(null)
+
+  const handleCapture = async () => {
+    if (!captureRef.current || captureStatus === 'loading') return
+    setCaptureStatus('loading')
+    try {
+      const dataUrl = await toPng(captureRef.current, {
+        pixelRatio: 2,
+        backgroundColor: '#111111'
+      })
+
+      // Panoya kopyala
+      try {
+        const res = await fetch(dataUrl)
+        const blob = await res.blob()
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+      } catch (clipErr) {
+        console.warn('Clipboard API failed:', clipErr)
+      }
+
+      // İndir
+      const link = document.createElement('a')
+      link.download = `nutrito-${currentDate}.png`
+      link.href = dataUrl
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      setCaptureStatus('done')
+      setTimeout(() => setCaptureStatus(''), 2500)
+    } catch (e) {
+      console.error('Capture failed:', e)
+      setCaptureStatus('error')
+      setTimeout(() => setCaptureStatus(''), 3000)
+    }
+  }
 
   const goToPreviousDay = () => {
     const d = new Date(currentDate + 'T12:00:00')
@@ -129,6 +167,16 @@ export default function Dashboard() {
           <Calendar size={16} style={{ marginRight: '0.375rem' }} />
           Tarihten aktar
         </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleCapture}
+          disabled={captureStatus === 'loading'}
+          style={{ paddingLeft: '0.875rem', paddingRight: '0.875rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+        >
+          <Camera size={16} style={{ marginRight: '0.375rem' }} />
+          {captureStatus === 'loading' ? 'Kaydediliyor...' : captureStatus === 'done' ? '✓ İndirildi' : captureStatus === 'error' ? '✗ Hata (konsolu aç)' : 'Görüntü Al'}
+        </Button>
         {copyStatus && (
           <span className="text-sm text-[var(--text-secondary)]" style={{ marginLeft: '0.25rem' }}>
             {copyStatus}
@@ -136,16 +184,21 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Meals Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '1rem' }} className="md:grid-cols-2">
-        {mealTypeOrder.map((mealType) => (
-          <MealCard
-            key={mealType}
-            date={currentDate}
-            mealType={mealType}
-            title={mealTypeLabels[mealType]}
-          />
-        ))}
+      {/* Meals Grid — capture target */}
+      <div ref={captureRef} style={{ padding: '1rem', borderRadius: '0.75rem', background: 'var(--bg-secondary)' }}>
+        <p style={{ textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+          {formatDisplayDate(currentDate)}
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '1rem' }} className="md:grid-cols-2">
+          {mealTypeOrder.map((mealType) => (
+            <MealCard
+              key={mealType}
+              date={currentDate}
+              mealType={mealType}
+              title={mealTypeLabels[mealType]}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Water & Weight Section */}
