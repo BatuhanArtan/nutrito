@@ -41,6 +41,8 @@ const useAppStore = create(
       // Water Logs
       waterLogs: [],
       setWaterLogs: (logs) => set({ waterLogs: logs }),
+      // Hangi tarihlerde local update yapıldı (race condition önlemek için)
+      _waterLocalUpdatedAt: {},
 
       // Weight Logs
       weightLogs: [],
@@ -120,6 +122,18 @@ const useAppStore = create(
 
           const settingsMap = Object.fromEntries((appSettings || []).map(s => [s.key, s.value]))
 
+          const { waterLogs: localWaterLogs, _waterLocalUpdatedAt } = get()
+          const DIRTY_TTL = 30000 // 30 saniye
+          const mergedWaterLogs = (waterLogs || []).map(remote => {
+            const ts = _waterLocalUpdatedAt?.[remote.date]
+            if (ts && Date.now() - ts < DIRTY_TTL) {
+              // Bu tarihte local update var ve henüz tamamlanmadı — local'i koru
+              const local = localWaterLogs.find(l => l.date === remote.date)
+              return local || remote
+            }
+            return remote
+          })
+
           set({
             units: (units?.length ? units : DEFAULT_UNITS),
             foods: foods || [],
@@ -128,7 +142,7 @@ const useAppStore = create(
             recipeCategories: categories || [],
             dailyMeals: dailyMeals || [],
             mealItems: mealItems || [],
-            waterLogs: waterLogs || [],
+            waterLogs: mergedWaterLogs,
             weightLogs: weightLogs || [],
             ...(settingsMap.weightTarget !== undefined && { weightTarget: settingsMap.weightTarget }),
             ...(settingsMap.waterTargetDefault !== undefined && { waterTargetDefault: settingsMap.waterTargetDefault }),
@@ -463,13 +477,24 @@ const useAppStore = create(
       },
 
       updateWaterLog: async (date, updates) => {
+        const now = Date.now()
         set((state) => ({
-          waterLogs: state.waterLogs.map(l => l.date === date ? { ...l, ...updates } : l)
+          waterLogs: state.waterLogs.map(l => l.date === date ? { ...l, ...updates } : l),
+          _waterLocalUpdatedAt: { ...state._waterLocalUpdatedAt, [date]: now }
         }))
 
         if (isSupabaseConfigured()) {
-          const { error } = await supabase.from('water_logs').update(updates).eq('date', date)
-          if (error) console.error('Error updating water log:', error)
+          const { data, error } = await supabase
+            .from('water_logs').update(updates).eq('date', date).select().single()
+          if (error) {
+            console.error('Error updating water log:', error)
+          } else if (data) {
+            // initializeData race condition'ı ezip eski değer yazmışsa düzelt
+            set((state) => ({
+              waterLogs: state.waterLogs.map(l => l.date === date ? { ...l, ...data } : l),
+              _waterLocalUpdatedAt: { ...state._waterLocalUpdatedAt, [date]: undefined }
+            }))
+          }
         }
       },
 
