@@ -87,6 +87,7 @@ const useAppStore = create(
           return
         }
 
+        const fetchStartedAt = Date.now()
         set({ isLoading: true })
         try {
           const [
@@ -123,13 +124,11 @@ const useAppStore = create(
           const settingsMap = Object.fromEntries((appSettings || []).map(s => [s.key, s.value]))
 
           const { waterLogs: localWaterLogs, _waterLocalUpdatedAt } = get()
-          const DIRTY_TTL = 30000 // 30 saniye
           const mergedWaterLogs = (waterLogs || []).map(remote => {
-            const ts = _waterLocalUpdatedAt?.[remote.date]
-            if (ts && Date.now() - ts < DIRTY_TTL) {
-              // Bu tarihte local update var ve henüz tamamlanmadı — local'i koru
-              const local = localWaterLogs.find(l => l.date === remote.date)
-              return local || remote
+            const localTs = _waterLocalUpdatedAt?.[remote.date]
+            // Bu fetch başladıktan SONRA local update yapıldıysa Supabase verisi stale — local'i koru
+            if (localTs && localTs > fetchStartedAt) {
+              return localWaterLogs.find(l => l.date === remote.date) || remote
             }
             return remote
           })
@@ -489,10 +488,9 @@ const useAppStore = create(
           if (error) {
             console.error('Error updating water log:', error)
           } else if (data) {
-            // initializeData race condition'ı ezip eski değer yazmışsa düzelt
+            // Supabase'den confirmed değeri yaz (dirty flag'i koruyoruz — initializeData timestamp karşılaştırması halleder)
             set((state) => ({
-              waterLogs: state.waterLogs.map(l => l.date === date ? { ...l, ...data } : l),
-              _waterLocalUpdatedAt: { ...state._waterLocalUpdatedAt, [date]: undefined }
+              waterLogs: state.waterLogs.map(l => l.date === date ? { ...l, ...data } : l)
             }))
           }
         }
