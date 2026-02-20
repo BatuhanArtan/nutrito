@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, ExternalLink } from 'lucide-react'
+import { ArrowRight, ExternalLink, RefreshCw } from 'lucide-react'
 import useAppStore from '../../stores/appStore'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
 
-export default function ExchangeModal({ isOpen, onClose, foodId, foodName }) {
+export default function ExchangeModal({ isOpen, onClose, foodId, foodName, onApplyExchange }) {
   const navigate = useNavigate()
   const getExchangesForFood = useAppStore((state) => state.getExchangesForFood)
   const exchanges = getExchangesForFood(foodId)
@@ -12,6 +12,13 @@ export default function ExchangeModal({ isOpen, onClose, foodId, foodName }) {
   const goToExchanges = () => {
     onClose()
     navigate('/exchanges')
+  }
+
+  const handleApply = (exchange) => {
+    if (onApplyExchange) {
+      onApplyExchange(exchange)
+      onClose()
+    }
   }
 
   return (
@@ -29,28 +36,38 @@ export default function ExchangeModal({ isOpen, onClose, foodId, foodName }) {
           </div>
         ) : (
           <>
-            <p className="text-sm text-[var(--text-secondary)]" style={{ marginBottom: '0' }}>
-              {foodName} ile eşdeğer değişimler:
+            <p className="text-sm text-[var(--text-secondary)]">
+              {foodName} ile eşdeğer değişimler — değiştirmek için bir satıra tıkla:
             </p>
 
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0 }}>
               {exchanges.map((exchange) => (
-                <li
-                  key={exchange.id}
-                  className="flex items-center flex-wrap bg-[var(--bg-tertiary)] rounded-lg gap-1"
-                  style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
-                >
-                  <ArrowRight size={14} className="text-[var(--accent)] flex-shrink-0" />
-                  <span className="text-[var(--text-primary)]">
-                    {exchange.leftQuantity} {exchange.leftUnit?.abbreviation || exchange.leftUnit?.name || 'porsiyon'} {exchange.leftFood?.name}
-                  </span>
-                  <span className="text-[var(--text-secondary)]">=</span>
-                  {(exchange.rightItems || []).map((item, idx) => (
-                    <span key={idx} className="text-[var(--text-primary)]">
-                      {idx > 0 && <span className="text-[var(--accent)] mx-1">+ </span>}
-                      {item.quantity} {item.unit?.abbreviation || item.unit?.name || 'porsiyon'} {item.food?.name}
+                <li key={exchange.id}>
+                  <button
+                    onClick={() => handleApply(exchange)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.25rem',
+                      background: 'var(--bg-tertiary)', border: '1px solid transparent', borderRadius: '0.5rem',
+                      padding: '0.75rem 1rem', cursor: 'pointer', textAlign: 'left',
+                      transition: 'border-color 0.15s, background 0.15s'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--bg-secondary)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'var(--bg-tertiary)' }}
+                    title="Bu besinle değiştir"
+                  >
+                    <ArrowRight size={14} className="text-[var(--accent)] flex-shrink-0" />
+                    <span className="text-[var(--text-primary)]">
+                      {exchange.leftQuantity} {exchange.leftUnit?.abbreviation || exchange.leftUnit?.name || 'porsiyon'} {exchange.leftFood?.name}
                     </span>
-                  ))}
+                    <span className="text-[var(--text-secondary)]">=</span>
+                    {(exchange.rightItems || []).map((item, idx) => (
+                      <span key={idx} className="text-[var(--text-primary)]">
+                        {idx > 0 && <span className="text-[var(--accent)] mx-1">+ </span>}
+                        {item.quantity} {item.unit?.abbreviation || item.unit?.name || 'porsiyon'} {item.food?.name}
+                      </span>
+                    ))}
+                    <RefreshCw size={12} style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--text-secondary)', opacity: 0.5 }} />
+                  </button>
                 </li>
               ))}
             </ul>

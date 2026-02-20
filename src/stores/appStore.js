@@ -34,6 +34,24 @@ const useAppStore = create(
       dailyMeals: [],
       setDailyMeals: (meals) => set({ dailyMeals: meals }),
 
+      // Tamamlanan öğünler — key: "date_mealType", value: true
+      completedMeals: {},
+      toggleMealCompleted: async (date, mealType) => {
+        const key = `${date}_${mealType}`
+        const current = get().completedMeals[key] ?? false
+        const next = !current
+        set((state) => ({
+          completedMeals: { ...state.completedMeals, [key]: next }
+        }))
+        if (isSupabaseConfigured()) {
+          const { dailyMeals } = get()
+          const meal = dailyMeals.find(m => toDateStr(m.date) === date && m.meal_type === mealType)
+          if (meal) {
+            await supabase.from('daily_meals').update({ completed: next }).eq('id', meal.id)
+          }
+        }
+      },
+
       // Meal Items
       mealItems: [],
       setMealItems: (items) => set({ mealItems: items }),
@@ -630,6 +648,7 @@ const useAppStore = create(
         recipeCategories: state.recipeCategories,
         dailyMeals: state.dailyMeals,
         mealItems: state.mealItems,
+        completedMeals: state.completedMeals,
         waterLogs: state.waterLogs,
         weightLogs: state.weightLogs,
         waterTargetDefault: state.waterTargetDefault,

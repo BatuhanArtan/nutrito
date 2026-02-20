@@ -9,6 +9,7 @@ export default function FoodItem({ item }) {
   const [showExchangeModal, setShowExchangeModal] = useState(false)
   const deleteMealItem = useAppStore((state) => state.deleteMealItem)
   const addMealItem = useAppStore((state) => state.addMealItem)
+  const updateMealItem = useAppStore((state) => state.updateMealItem)
   const navigate = useNavigate()
 
   const displayName = item.food?.name || item.recipe?.title || 'Bilinmeyen'
@@ -28,6 +29,32 @@ export default function FoodItem({ item }) {
       quantity: item.quantity,
       unit_id: item.unit_id || null
     })
+  }
+
+  const handleApplyExchange = async (exchange) => {
+    const rightItems = exchange.rightItems || []
+    if (rightItems.length === 0) return
+
+    // İlk sağ besinle mevcut item'ı güncelle
+    const first = rightItems[0]
+    await updateMealItem(item.id, {
+      food_id: first.food?.id || null,
+      recipe_id: null,
+      quantity: first.quantity,
+      unit_id: first.unit?.id || null
+    })
+
+    // Birden fazla sağ besin varsa kalanları ekle
+    for (let i = 1; i < rightItems.length; i++) {
+      const ri = rightItems[i]
+      await addMealItem({
+        daily_meal_id: item.daily_meal_id,
+        food_id: ri.food?.id || null,
+        recipe_id: null,
+        quantity: ri.quantity,
+        unit_id: ri.unit?.id || null
+      })
+    }
   }
 
   const handleDragStart = (e) => {
@@ -108,6 +135,7 @@ export default function FoodItem({ item }) {
           onClose={() => setShowExchangeModal(false)}
           foodId={item.food.id}
           foodName={displayName}
+          onApplyExchange={handleApplyExchange}
         />
       )}
     </>

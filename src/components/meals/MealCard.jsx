@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Plus, Coffee, Sun, Cookie, Moon } from 'lucide-react'
+import { Plus, Coffee, Sun, Cookie, Moon, CheckCircle2, Circle } from 'lucide-react'
 import useAppStore from '../../stores/appStore'
 import Card, { CardHeader, CardTitle, CardContent } from '../ui/Card'
 import Button from '../ui/Button'
@@ -30,7 +30,11 @@ export default function MealCard({ date, mealType, title }) {
   const getOrCreateDailyMeal = useAppStore((state) => state.getOrCreateDailyMeal)
   const updateMealItem = useAppStore((state) => state.updateMealItem)
   const mealItems = useAppStore((state) => state.mealItems)
+  const completedMeals = useAppStore((state) => state.completedMeals)
+  const toggleMealCompleted = useAppStore((state) => state.toggleMealCompleted)
   const mealItemsForCard = getMealItemsForMeal(date, mealType)
+
+  const isCompleted = completedMeals[`${date}_${mealType}`] ?? false
 
   const Icon = mealIcons[mealType] || Coffee
 
@@ -67,6 +71,11 @@ export default function MealCard({ date, mealType, title }) {
     await updateMealItem(itemId, { daily_meal_id: targetMeal.id })
   }
 
+  const cardStyle = {
+    ...(isDragOver ? { outline: '2px solid var(--accent)', outlineOffset: '2px' } : {}),
+    ...(isCompleted ? { borderLeft: '3px solid #4ade80', opacity: 0.85 } : {})
+  }
+
   return (
     <>
       <Card
@@ -74,20 +83,37 @@ export default function MealCard({ date, mealType, title }) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        style={isDragOver ? { outline: '2px solid var(--accent)', outlineOffset: '2px' } : undefined}
+        style={Object.keys(cardStyle).length ? cardStyle : undefined}
       >
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Icon size={20} className={mealColors[mealType]} />
             {title}
+            {isCompleted && (
+              <span style={{ fontSize: '0.75rem', color: '#4ade80', opacity: 0.6, fontWeight: 400 }}>
+                (Tamamlandı)
+              </span>
+            )}
           </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowAddModal(true)}
-          >
-            <Plus size={18} />
-          </Button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => toggleMealCompleted(date, mealType)}
+              title={isCompleted ? 'Tamamlandı olarak işaretli — kaldırmak için tıkla' : 'Tamamlandı olarak işaretle'}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', borderRadius: '6px', color: isCompleted ? '#4ade80' : 'var(--text-secondary)', transition: 'color 0.2s' }}
+            >
+              {isCompleted
+                ? <CheckCircle2 size={20} />
+                : <Circle size={20} />
+              }
+            </button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowAddModal(true)}
+            >
+              <Plus size={18} />
+            </Button>
+          </div>
         </CardHeader>
 
         <CardContent>
