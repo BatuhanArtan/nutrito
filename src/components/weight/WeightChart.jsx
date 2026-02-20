@@ -295,56 +295,104 @@ export default function WeightChart() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {sortedAllLogs.length === 0 ? (
             <p className="text-[var(--text-secondary)] text-center py-6">Henüz kilo kaydı yok.</p>
-          ) : (
-            <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0, maxHeight: '60vh', overflowY: 'auto' }}>
-              {sortedAllLogs.map((log) => (
-                <li
-                  key={log.id}
-                  className="flex items-center justify-between bg-[var(--bg-tertiary)] rounded-lg"
-                  style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', gap: '0.5rem' }}
-                >
-                  <span className="text-sm text-[var(--text-secondary)] flex-shrink-0" style={{ minWidth: '7rem' }}>
-                    {formatDate(log.date)}
-                  </span>
+          ) : (() => {
+            const oldest = sortedAllLogs[sortedAllLogs.length - 1]
+            const newest = sortedAllLogs[0]
+            const totalDiff = sortedAllLogs.length >= 2
+              ? parseFloat((newest.weight - oldest.weight).toFixed(1))
+              : null
+            const totalColor = totalDiff === null ? 'var(--text-secondary)'
+              : totalDiff < 0 ? '#4ade80'
+              : totalDiff > 0 ? '#f87171'
+              : 'var(--text-secondary)'
 
-                  {editingLog?.id === log.id ? (
-                    <div className="flex items-center gap-2 flex-1">
-                      <input
-                        type="number"
-                        value={editWeight}
-                        onChange={(e) => setEditWeight(e.target.value)}
-                        step="0.1"
-                        min="0"
-                        autoFocus
-                        className="bg-[var(--bg-secondary)] border border-[var(--accent)] rounded-lg px-2 py-1 text-[var(--text-primary)] text-sm w-20"
-                      />
-                      <span className="text-xs text-[var(--text-secondary)]">kg</span>
-                      <Button variant="ghost" size="icon" onClick={saveEdit}>
-                        <Check size={14} className="text-[var(--success)]" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={cancelEdit}>
-                        <X size={14} className="text-[var(--text-secondary)]" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="text-sm font-semibold text-[var(--text-primary)] flex-1">
-                        {log.weight} kg
-                      </span>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => startEdit(log)}>
-                          <Edit2 size={14} className="text-[var(--text-secondary)]" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(log)}>
-                          <Trash2 size={14} className="text-red-400" />
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
+            return (
+              <>
+                <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0, maxHeight: '55vh', overflowY: 'auto' }}>
+                  {sortedAllLogs.map((log, index) => {
+                    const prevLog = sortedAllLogs[index + 1]
+                    const diff = prevLog ? parseFloat((log.weight - prevLog.weight).toFixed(1)) : null
+                    let weightColor = 'var(--text-primary)'
+                    let diffColor = 'var(--text-secondary)'
+                    if (diff !== null) {
+                      if (diff < 0) { weightColor = '#4ade80'; diffColor = '#4ade80' }
+                      else if (diff > 0) { weightColor = '#f87171'; diffColor = '#f87171' }
+                    }
+                    return (
+                      <li
+                        key={log.id}
+                        className="flex items-center justify-between bg-[var(--bg-tertiary)] rounded-lg"
+                        style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', gap: '0.5rem' }}
+                      >
+                        <span className="text-sm text-[var(--text-secondary)] flex-shrink-0" style={{ minWidth: '7rem' }}>
+                          {formatDate(log.date)}
+                        </span>
+
+                        {editingLog?.id === log.id ? (
+                          <div className="flex items-center gap-2 flex-1">
+                            <input
+                              type="number"
+                              value={editWeight}
+                              onChange={(e) => setEditWeight(e.target.value)}
+                              step="0.1"
+                              min="0"
+                              autoFocus
+                              className="bg-[var(--bg-secondary)] border border-[var(--accent)] rounded-lg px-2 py-1 text-[var(--text-primary)] text-sm w-20"
+                            />
+                            <span className="text-xs text-[var(--text-secondary)]">kg</span>
+                            <Button variant="ghost" size="icon" onClick={saveEdit}>
+                              <Check size={14} className="text-[var(--success)]" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={cancelEdit}>
+                              <X size={14} className="text-[var(--text-secondary)]" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="text-sm font-semibold flex-1" style={{ color: weightColor }}>
+                              {log.weight} kg
+                            </span>
+                            {diff !== null && (
+                              <span className="text-xs flex-shrink-0" style={{ color: diffColor, minWidth: '4rem', textAlign: 'right', marginRight: '0.25rem' }}>
+                                {diff > 0 ? '+' : ''}{diff} kg
+                              </span>
+                            )}
+                            <div className="flex gap-1 flex-shrink-0">
+                              <Button variant="ghost" size="icon" onClick={() => startEdit(log)}>
+                                <Edit2 size={14} className="text-[var(--text-secondary)]" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDelete(log)}>
+                                <Trash2 size={14} className="text-red-400" />
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+
+                {totalDiff !== null && (
+                  <div style={{
+                    marginTop: '0.5rem',
+                    padding: '0.75rem 1rem',
+                    background: 'var(--bg-tertiary)',
+                    borderRadius: '0.5rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <span className="text-sm text-[var(--text-secondary)]">
+                      Toplam ({formatDate(oldest.date)} → {formatDate(newest.date)})
+                    </span>
+                    <span className="text-sm font-bold" style={{ color: totalColor }}>
+                      {totalDiff > 0 ? '+' : ''}{totalDiff} kg
+                    </span>
+                  </div>
+                )}
+              </>
+            )
+          })()}
         </div>
       </Modal>
     </>
