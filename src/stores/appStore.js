@@ -36,20 +36,49 @@ const useAppStore = create(
 
       // Tamamlanan öğünler — key: "date_mealType", value: true (UI için; DB'de daily_meals.completed + completed_at)
       completedMeals: {},
+      skippedMeals: {},
       toggleMealCompleted: async (date, mealType) => {
         const key = `${toDateStr(date)}_${mealType}`
         let meal = get().dailyMeals.find(m => toDateStr(m.date) === toDateStr(date) && m.meal_type === mealType)
         if (!meal) meal = await get().getOrCreateDailyMeal(date, mealType)
         const current = meal?.completed ?? get().completedMeals[key] ?? false
         const next = !current
+        const skippedKey = `${toDateStr(date)}_${mealType}`
         set((state) => ({
           completedMeals: { ...state.completedMeals, [key]: next },
+          // Tamamlandı işaretlenince Atlandı kaldırılır
+          skippedMeals: next ? { ...state.skippedMeals, [skippedKey]: false } : state.skippedMeals,
           dailyMeals: state.dailyMeals.map((m) =>
-            m.id === meal.id ? { ...m, completed: next, completed_at: next ? (m.completed_at ?? null) : null } : m
+            m.id === meal.id ? { ...m, completed: next, completed_at: next ? (m.completed_at ?? null) : null, skipped: next ? false : m.skipped } : m
           )
         }))
         if (isSupabaseConfigured()) {
-          await supabase.from('daily_meals').update({ completed: next, completed_at: next ? (meal.completed_at ?? null) : null }).eq('id', meal.id)
+          await supabase.from('daily_meals').update({
+            completed: next,
+            completed_at: next ? (meal.completed_at ?? null) : null,
+            ...(next && { skipped: false })
+          }).eq('id', meal.id)
+        }
+      },
+      toggleMealSkipped: async (date, mealType) => {
+        const key = `${toDateStr(date)}_${mealType}`
+        let meal = get().dailyMeals.find(m => toDateStr(m.date) === toDateStr(date) && m.meal_type === mealType)
+        if (!meal) meal = await get().getOrCreateDailyMeal(date, mealType)
+        const current = meal?.skipped ?? get().skippedMeals[key] ?? false
+        const next = !current
+        set((state) => ({
+          skippedMeals: { ...state.skippedMeals, [key]: next },
+          // Atlandı işaretlenince Tamamlandı kaldırılır
+          completedMeals: next ? { ...state.completedMeals, [key]: false } : state.completedMeals,
+          dailyMeals: state.dailyMeals.map((m) =>
+            m.id === meal.id ? { ...m, skipped: next, ...(next && { completed: false, completed_at: null }) } : m
+          )
+        }))
+        if (isSupabaseConfigured()) {
+          await supabase.from('daily_meals').update({
+            skipped: next,
+            ...(next && { completed: false, completed_at: null })
+          }).eq('id', meal.id)
         }
       },
       setMealCompletedAt: async (date, mealType, time) => {
@@ -166,6 +195,7 @@ const useAppStore = create(
 
           const dm = dailyMeals || []
           const completedFromDb = Object.fromEntries(dm.filter((m) => m.completed).map((m) => [`${toDateStr(m.date)}_${m.meal_type}`, true]))
+          const skippedFromDb = Object.fromEntries(dm.filter((m) => m.skipped).map((m) => [`${toDateStr(m.date)}_${m.meal_type}`, true]))
 
           set({
             units: (units?.length ? units : DEFAULT_UNITS),
@@ -175,6 +205,7 @@ const useAppStore = create(
             recipeCategories: categories || [],
             dailyMeals: dm,
             completedMeals: completedFromDb,
+            skippedMeals: skippedFromDb,
             mealItems: mealItems || [],
             waterLogs: mergedWaterLogs,
             weightLogs: weightLogs || [],
@@ -666,6 +697,7 @@ const useAppStore = create(
         dailyMeals: state.dailyMeals,
         mealItems: state.mealItems,
         completedMeals: state.completedMeals,
+        skippedMeals: state.skippedMeals,
         waterLogs: state.waterLogs,
         weightLogs: state.weightLogs,
         waterTargetDefault: state.waterTargetDefault,

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Plus, Coffee, Sun, Cookie, Moon, CheckCircle2, Circle } from 'lucide-react'
+import { Plus, Coffee, Sun, Cookie, Moon, CheckCircle2, Circle, MinusCircle } from 'lucide-react'
 import useAppStore from '../../stores/appStore'
 import { toDateStr } from '../../lib/utils'
 import Card, { CardHeader, CardTitle, CardContent } from '../ui/Card'
@@ -32,12 +32,16 @@ export default function MealCard({ date, mealType, title }) {
   const updateMealItem = useAppStore((state) => state.updateMealItem)
   const mealItems = useAppStore((state) => state.mealItems)
   const completedMeals = useAppStore((state) => state.completedMeals)
+  const skippedMeals = useAppStore((state) => state.skippedMeals)
   const toggleMealCompleted = useAppStore((state) => state.toggleMealCompleted)
+  const toggleMealSkipped = useAppStore((state) => state.toggleMealSkipped)
   const setMealCompletedAt = useAppStore((state) => state.setMealCompletedAt)
   const mealItemsForCard = getMealItemsForMeal(date, mealType)
 
   const meal = dailyMeals.find((m) => toDateStr(m.date) === toDateStr(date) && m.meal_type === mealType)
-  const isCompleted = meal?.completed ?? completedMeals[`${date}_${mealType}`] ?? false
+  const key = `${toDateStr(date)}_${mealType}`
+  const isCompleted = meal?.completed ?? completedMeals[key] ?? false
+  const isSkipped = meal?.skipped ?? skippedMeals[key] ?? false
   const completedAt = meal?.completed_at || null
 
   const Icon = mealIcons[mealType] || Coffee
@@ -77,7 +81,8 @@ export default function MealCard({ date, mealType, title }) {
 
   const cardStyle = {
     ...(isDragOver ? { outline: '2px solid var(--accent)', outlineOffset: '2px' } : {}),
-    ...(isCompleted ? { borderLeft: '3px solid #4ade80', opacity: 0.85 } : {})
+    ...(isCompleted ? { borderLeft: '3px solid #4ade80', opacity: 0.85 } : {}),
+    ...(isSkipped ? { borderLeft: '3px solid #f97316', opacity: 0.6 } : {})
   }
 
   return (
@@ -98,14 +103,26 @@ export default function MealCard({ date, mealType, title }) {
                 ({completedAt}'da Tamamlandı)
               </span>
             )}
+            {isSkipped && (
+              <span style={{ fontSize: '0.75rem', color: '#f97316', opacity: 0.9, fontWeight: 400 }}>
+                (Atlandı)
+              </span>
+            )}
           </CardTitle>
           <div className="flex items-center gap-1 flex-wrap">
             <button
               onClick={() => toggleMealCompleted(date, mealType)}
-              title={isCompleted ? 'Tamamlandı olarak işaretli — kaldırmak için tıkla' : 'Tamamlandı olarak işaretle'}
+              title={isCompleted ? 'Tamamlandı — kaldırmak için tıkla' : 'Tamamlandı olarak işaretle'}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', borderRadius: '6px', color: isCompleted ? '#4ade80' : 'var(--text-secondary)', transition: 'color 0.2s' }}
             >
               {isCompleted ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+            </button>
+            <button
+              onClick={() => toggleMealSkipped(date, mealType)}
+              title={isSkipped ? 'Atlandı — kaldırmak için tıkla' : 'Atlandı olarak işaretle'}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', borderRadius: '6px', color: isSkipped ? '#f97316' : 'var(--text-secondary)', transition: 'color 0.2s' }}
+            >
+              <MinusCircle size={20} />
             </button>
             {isCompleted && (
               <input

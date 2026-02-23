@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Copy, Calendar, Camera } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Copy, Calendar, Camera, Droplets } from 'lucide-react'
 import { toPng } from 'html-to-image'
 import useAppStore from '../stores/appStore'
 import { formatDisplayDate, getToday, mealTypeLabels, mealTypeOrder, toLocalDateStr } from '../lib/utils'
@@ -14,6 +14,9 @@ export default function Dashboard() {
   const currentDate = useAppStore((state) => state.currentDate)
   const setCurrentDate = useAppStore((state) => state.setCurrentDate)
   const copyMealsFromDate = useAppStore((state) => state.copyMealsFromDate)
+  const waterLogs = useAppStore((state) => state.waterLogs)
+  const waterTargetDefault = useAppStore((state) => state.waterTargetDefault)
+  const waterGlassVolumeMl = useAppStore((state) => state.waterGlassVolumeMl)
 
   const [showDateModal, setShowDateModal] = useState(false)
   const [copyFromDate, setCopyFromDate] = useState('')
@@ -199,6 +202,31 @@ export default function Dashboard() {
             />
           ))}
         </div>
+        {/* Su özeti — yalnızca görüntüde görünür */}
+        {(() => {
+          const waterLog = waterLogs.find((l) => l.date === currentDate)
+          const glasses = waterLog?.glasses ?? 0
+          const target = waterTargetDefault ?? 8
+          const volumeMl = waterGlassVolumeMl ?? 200
+          const totalMl = glasses * volumeMl
+          const totalL = totalMl / 1000
+          const targetL = (target * volumeMl) / 1000
+          const isComplete = glasses >= target
+          return (
+            <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', borderRadius: '0.5rem', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Droplets size={18} style={{ color: isComplete ? 'var(--success)' : '#60a5fa', flexShrink: 0 }} />
+              <span style={{ fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+                Su Tüketimi:
+              </span>
+              <span style={{ fontSize: '0.875rem', color: isComplete ? 'var(--success)' : '#60a5fa' }}>
+                {glasses} bardak ({totalL.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} L)
+              </span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginLeft: 'auto' }}>
+                Hedef: {target} bardak ({targetL.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} L)
+              </span>
+            </div>
+          )
+        })()}
       </div>
 
       {/* Water & Weight Section */}
