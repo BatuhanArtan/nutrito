@@ -34,21 +34,34 @@ const useAppStore = create(
       dailyMeals: [],
       setDailyMeals: (meals) => set({ dailyMeals: meals }),
 
-      // Tamamlanan öğünler — key: "date_mealType", value: true
+      // Tamamlanan öğünler — key: "date_mealType", value: true (UI için; DB'de daily_meals.completed + completed_at)
       completedMeals: {},
       toggleMealCompleted: async (date, mealType) => {
-        const key = `${date}_${mealType}`
-        const current = get().completedMeals[key] ?? false
+        const key = `${toDateStr(date)}_${mealType}`
+        let meal = get().dailyMeals.find(m => toDateStr(m.date) === toDateStr(date) && m.meal_type === mealType)
+        if (!meal) meal = await get().getOrCreateDailyMeal(date, mealType)
+        const current = meal?.completed ?? get().completedMeals[key] ?? false
         const next = !current
         set((state) => ({
-          completedMeals: { ...state.completedMeals, [key]: next }
+          completedMeals: { ...state.completedMeals, [key]: next },
+          dailyMeals: state.dailyMeals.map((m) =>
+            m.id === meal.id ? { ...m, completed: next, completed_at: next ? (m.completed_at ?? null) : null } : m
+          )
         }))
         if (isSupabaseConfigured()) {
-          const { dailyMeals } = get()
-          const meal = dailyMeals.find(m => toDateStr(m.date) === date && m.meal_type === mealType)
-          if (meal) {
-            await supabase.from('daily_meals').update({ completed: next }).eq('id', meal.id)
-          }
+          await supabase.from('daily_meals').update({ completed: next, completed_at: next ? (meal.completed_at ?? null) : null }).eq('id', meal.id)
+        }
+      },
+      setMealCompletedAt: async (date, mealType, time) => {
+        const { dailyMeals } = get()
+        const meal = dailyMeals.find(m => toDateStr(m.date) === toDateStr(date) && m.meal_type === mealType)
+        if (!meal) return
+        const value = time && /^\d{1,2}:\d{2}$/.test(time) ? time : null
+        set((state) => ({
+          dailyMeals: state.dailyMeals.map((m) => (m.id === meal.id ? { ...m, completed_at: value } : m))
+        }))
+        if (isSupabaseConfigured()) {
+          await supabase.from('daily_meals').update({ completed_at: value }).eq('id', meal.id)
         }
       },
 
@@ -151,13 +164,17 @@ const useAppStore = create(
             return remote
           })
 
+          const dm = dailyMeals || []
+          const completedFromDb = Object.fromEntries(dm.filter((m) => m.completed).map((m) => [`${toDateStr(m.date)}_${m.meal_type}`, true]))
+
           set({
             units: (units?.length ? units : DEFAULT_UNITS),
             foods: foods || [],
             exchanges: (exchanges || []).map(migrateEx),
             recipes: recipes || [],
             recipeCategories: categories || [],
-            dailyMeals: dailyMeals || [],
+            dailyMeals: dm,
+            completedMeals: completedFromDb,
             mealItems: mealItems || [],
             waterLogs: mergedWaterLogs,
             weightLogs: weightLogs || [],
@@ -391,7 +408,7 @@ const useAppStore = create(
         let meal = dailyMeals.find(m => toDateStr(m.date) === dateNorm && m.meal_type === mealType)
 
         if (!meal) {
-          meal = { id: generateId(), date: dateNorm || date, meal_type: mealType, created_at: new Date().toISOString() }
+          meal = { id: generateId(), date: dateNorm || date, meal_type: mealType, completed: false, completed_at: null, created_at: new Date().toISOString() }
           set((state) => ({ dailyMeals: [...state.dailyMeals, meal] }))
 
           if (isSupabaseConfigured()) {
