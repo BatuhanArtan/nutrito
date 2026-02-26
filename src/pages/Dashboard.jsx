@@ -303,7 +303,7 @@ export default function Dashboard() {
               value={snackLabel}
               onChange={(e) => setSnackLabel(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddSnack()}
-              placeholder="örn. Gece Atıştırması (boş kalırsa ARA ÖĞÜN ismiyle eklenir.)"
+              placeholder="ARA ÖĞÜN"
               autoFocus
               className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-[var(--accent)]"
             />
