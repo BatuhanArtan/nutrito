@@ -240,8 +240,8 @@ const useAppStore = create(
           { name: 'recipes', data: state.recipes, onConflict: 'id' },
           { name: 'daily_meals', data: state.dailyMeals, onConflict: 'id' },
           { name: 'meal_items', data: state.mealItems, onConflict: 'id' },
-          { name: 'water_logs', data: state.waterLogs, onConflict: 'date' },
-          { name: 'weight_logs', data: state.weightLogs, onConflict: 'date' }
+          { name: 'water_logs', data: state.waterLogs, onConflict: 'user_id,date' },
+          { name: 'weight_logs', data: state.weightLogs, onConflict: 'user_id,date' }
         ]
         for (const { name, data, onConflict } of tables) {
           if (!data?.length) continue
@@ -256,7 +256,7 @@ const useAppStore = create(
           { key: 'waterGlassVolumeMl', value: state.waterGlassVolumeMl }
         ].filter(s => s.value !== null && s.value !== undefined)
         if (settingsToSync.length) {
-          const { error } = await supabase.from('app_settings').upsert(settingsToSync, { onConflict: 'key' })
+          const { error } = await supabase.from('app_settings').upsert(settingsToSync, { onConflict: 'user_id,key' })
           if (error) console.error('app_settings sync error:', error)
         }
       },
@@ -696,10 +696,13 @@ const useAppStore = create(
           if (exists) { catIdMap[cat.id] = exists.id; continue }
           const newId = generateId()
           catIdMap[cat.id] = newId
-          newCats.push({ id: newId, name: cat.name, created_at: new Date().toISOString() })
+          // Tüm alanları kopyala (color dahil), sadece id/user_id/created_at override et
+          const { user_id: _u, id: _id, ...catFields } = cat
+          newCats.push({ ...catFields, id: newId, created_at: new Date().toISOString() })
         }
         if (newCats.length > 0) {
-          await supabase.from('recipe_categories').insert(newCats)
+          const { error: catErr } = await supabase.from('recipe_categories').insert(newCats)
+          if (catErr) throw new Error(`Kategori aktarım hatası: ${catErr.message}`)
           set(s => ({ recipeCategories: [...s.recipeCategories, ...newCats] }))
         }
 
@@ -710,16 +713,17 @@ const useAppStore = create(
           if (exists) { recipeIdMap[recipe.id] = exists.id; continue }
           const newId = generateId()
           recipeIdMap[recipe.id] = newId
+          const { user_id: _u, id: _id, category_id: _c, ...recipeFields } = recipe
           newRecipes.push({
+            ...recipeFields,
             id: newId,
-            title: recipe.title,
             category_id: catIdMap[recipe.category_id] || null,
-            description: recipe.description || null,
             created_at: new Date().toISOString()
           })
         }
         if (newRecipes.length > 0) {
-          await supabase.from('recipes').insert(newRecipes)
+          const { error: recErr } = await supabase.from('recipes').insert(newRecipes)
+          if (recErr) throw new Error(`Tarif aktarım hatası: ${recErr.message}`)
           set(s => ({ recipes: [...s.recipes, ...newRecipes] }))
         }
 
@@ -730,21 +734,18 @@ const useAppStore = create(
           if (exists) { foodIdMap[food.id] = exists.id; continue }
           const newId = generateId()
           foodIdMap[food.id] = newId
+          const { user_id: _u, id: _id, recipe_id: _r, unit_id: _ui, ...foodFields } = food
           newFoods.push({
+            ...foodFields,
             id: newId,
-            name: food.name,
-            calories: food.calories ?? null,
-            protein:  food.protein  ?? null,
-            carbs:    food.carbs    ?? null,
-            fat:      food.fat      ?? null,
-            unit_id:  food.unit_id  || null,
-            default_unit_id: food.default_unit_id || null,
+            unit_id: food.unit_id || null,
             recipe_id: food.recipe_id ? (recipeIdMap[food.recipe_id] || null) : null,
             created_at: new Date().toISOString()
           })
         }
         if (newFoods.length > 0) {
-          await supabase.from('foods').insert(newFoods)
+          const { error: foodErr } = await supabase.from('foods').insert(newFoods)
+          if (foodErr) throw new Error(`Besin aktarım hatası: ${foodErr.message}`)
           set(s => ({ foods: [...s.foods, ...newFoods] }))
         }
 
@@ -772,7 +773,8 @@ const useAppStore = create(
           })
         }
         if (newExchanges.length > 0) {
-          await supabase.from('food_exchanges').insert(newExchanges)
+          const { error: exErr } = await supabase.from('food_exchanges').insert(newExchanges)
+          if (exErr) throw new Error(`Değişim aktarım hatası: ${exErr.message}`)
           set(s => ({ exchanges: [...s.exchanges, ...newExchanges] }))
         }
 
