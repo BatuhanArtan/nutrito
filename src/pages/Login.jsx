@@ -13,6 +13,7 @@ export default function Login() {
   const navigate = useNavigate()
   const setUser = useAuthStore((state) => state.setUser)
   const initializeData = useAppStore((state) => state.initializeData)
+  const clearUserData = useAppStore((state) => state.clearUserData)
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -31,6 +32,7 @@ export default function Login() {
       const email = toAuthIdentifier(username)
       const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
       if (err) throw err
+      clearUserData()
       setUser(data.user)
       await initializeData()
       navigate('/', { replace: true })

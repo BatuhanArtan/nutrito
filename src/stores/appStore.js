@@ -682,7 +682,12 @@ const useAppStore = create(
           mealItems: [],
           waterLogs: [],
           weightLogs: [],
-          units: [...DEFAULT_UNITS]
+          units: [...DEFAULT_UNITS],
+          completedMeals: {},
+          skippedMeals: {},
+          waterTargetDefault: 8,
+          waterGlassVolumeMl: 200,
+          weightTarget: null
         })
       }
     }),

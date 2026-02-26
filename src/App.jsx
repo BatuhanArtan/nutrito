@@ -24,8 +24,17 @@ function App() {
   useEffect(() => {
     if (!isSupabaseConfigured()) return
     return subscribeAuth((u) => {
+      const prevUser = useAuthStore.getState().user
       useAuthStore.getState().setUser(u)
-      if (u) initializeData()
+      if (u) {
+        // Farklı kullanıcı girince önce önceki veriyi temizle
+        if (!prevUser || prevUser.id !== u.id) {
+          useAppStore.getState().clearUserData()
+        }
+        initializeData()
+      } else {
+        useAppStore.getState().clearUserData()
+      }
     })
   }, [initializeData])
 
