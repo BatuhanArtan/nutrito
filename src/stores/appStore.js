@@ -675,6 +675,11 @@ const useAppStore = create(
       importFromMaster: async () => {
         if (!isSupabaseConfigured()) throw new Error('Supabase yapılandırılmamış.')
 
+        // Mevcut kullanıcının ID'sini al — trigger'a güvenmek yerine explicit set edeceğiz
+        const { data: { session } } = await supabase.auth.getSession()
+        const currentUserId = session?.user?.id
+        if (!currentUserId) throw new Error('Oturum bulunamadı.')
+
         const { data, error } = await supabase.rpc('get_master_data')
         if (error) throw error
 
@@ -688,6 +693,7 @@ const useAppStore = create(
         const catIdMap    = {}
         const recipeIdMap = {}
         const foodIdMap   = {}
+        const now = new Date().toISOString()
 
         // 1. Kategoriler
         const newCats = []
@@ -696,9 +702,8 @@ const useAppStore = create(
           if (exists) { catIdMap[cat.id] = exists.id; continue }
           const newId = generateId()
           catIdMap[cat.id] = newId
-          // Tüm alanları kopyala (color dahil), sadece id/user_id/created_at override et
-          const { user_id: _u, id: _id, ...catFields } = cat
-          newCats.push({ ...catFields, id: newId, created_at: new Date().toISOString() })
+          const { user_id: _u, id: _id, created_at: _ca, ...catFields } = cat
+          newCats.push({ ...catFields, id: newId, user_id: currentUserId, created_at: now })
         }
         if (newCats.length > 0) {
           const { error: catErr } = await supabase.from('recipe_categories').insert(newCats)
@@ -713,12 +718,13 @@ const useAppStore = create(
           if (exists) { recipeIdMap[recipe.id] = exists.id; continue }
           const newId = generateId()
           recipeIdMap[recipe.id] = newId
-          const { user_id: _u, id: _id, category_id: _c, ...recipeFields } = recipe
+          const { user_id: _u, id: _id, category_id: _c, created_at: _ca, ...recipeFields } = recipe
           newRecipes.push({
             ...recipeFields,
             id: newId,
+            user_id: currentUserId,
             category_id: catIdMap[recipe.category_id] || null,
-            created_at: new Date().toISOString()
+            created_at: now
           })
         }
         if (newRecipes.length > 0) {
@@ -734,13 +740,13 @@ const useAppStore = create(
           if (exists) { foodIdMap[food.id] = exists.id; continue }
           const newId = generateId()
           foodIdMap[food.id] = newId
-          const { user_id: _u, id: _id, recipe_id: _r, unit_id: _ui, ...foodFields } = food
+          const { user_id: _u, id: _id, recipe_id: _r, created_at: _ca, ...foodFields } = food
           newFoods.push({
             ...foodFields,
             id: newId,
-            unit_id: food.unit_id || null,
+            user_id: currentUserId,
             recipe_id: food.recipe_id ? (recipeIdMap[food.recipe_id] || null) : null,
-            created_at: new Date().toISOString()
+            created_at: now
           })
         }
         if (newFoods.length > 0) {
@@ -762,6 +768,7 @@ const useAppStore = create(
           const newId = generateId()
           newExchanges.push({
             id: newId,
+            user_id: currentUserId,
             food_id: mappedFoodId,
             quantity_left: ex.quantity_left ?? 1,
             left_unit_id: ex.left_unit_id || null,
@@ -769,7 +776,7 @@ const useAppStore = create(
             equivalent_food_id: firstItem.equivalent_food_id || null,
             quantity: firstItem.quantity || null,
             unit_id: firstItem.unit_id || null,
-            created_at: new Date().toISOString()
+            created_at: now
           })
         }
         if (newExchanges.length > 0) {
