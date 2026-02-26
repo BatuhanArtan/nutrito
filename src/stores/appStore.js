@@ -672,6 +672,118 @@ const useAppStore = create(
       },
 
       // Çıkış yapınca kullanıcı verilerini temizle
+      importFromMaster: async () => {
+        if (!isSupabaseConfigured()) throw new Error('Supabase yapılandırılmamış.')
+
+        const { data, error } = await supabase.rpc('get_master_data')
+        if (error) throw error
+
+        const { foods, exchanges, recipes, recipeCategories } = get()
+        const masterData = typeof data === 'string' ? JSON.parse(data) : data
+        const masterCategories = masterData.categories || []
+        const masterRecipes   = masterData.recipes    || []
+        const masterFoods     = masterData.foods      || []
+        const masterExchanges = masterData.exchanges  || []
+
+        const catIdMap    = {}
+        const recipeIdMap = {}
+        const foodIdMap   = {}
+
+        // 1. Kategoriler
+        const newCats = []
+        for (const cat of masterCategories) {
+          const exists = recipeCategories.find(c => c.name === cat.name)
+          if (exists) { catIdMap[cat.id] = exists.id; continue }
+          const newId = generateId()
+          catIdMap[cat.id] = newId
+          newCats.push({ id: newId, name: cat.name, created_at: new Date().toISOString() })
+        }
+        if (newCats.length > 0) {
+          await supabase.from('recipe_categories').insert(newCats)
+          set(s => ({ recipeCategories: [...s.recipeCategories, ...newCats] }))
+        }
+
+        // 2. Tarifler
+        const newRecipes = []
+        for (const recipe of masterRecipes) {
+          const exists = recipes.find(r => r.title === recipe.title)
+          if (exists) { recipeIdMap[recipe.id] = exists.id; continue }
+          const newId = generateId()
+          recipeIdMap[recipe.id] = newId
+          newRecipes.push({
+            id: newId,
+            title: recipe.title,
+            category_id: catIdMap[recipe.category_id] || null,
+            description: recipe.description || null,
+            created_at: new Date().toISOString()
+          })
+        }
+        if (newRecipes.length > 0) {
+          await supabase.from('recipes').insert(newRecipes)
+          set(s => ({ recipes: [...s.recipes, ...newRecipes] }))
+        }
+
+        // 3. Besinler (recipe-bağlı olanlar dahil)
+        const newFoods = []
+        for (const food of masterFoods) {
+          const exists = foods.find(f => f.name === food.name)
+          if (exists) { foodIdMap[food.id] = exists.id; continue }
+          const newId = generateId()
+          foodIdMap[food.id] = newId
+          newFoods.push({
+            id: newId,
+            name: food.name,
+            calories: food.calories ?? null,
+            protein:  food.protein  ?? null,
+            carbs:    food.carbs    ?? null,
+            fat:      food.fat      ?? null,
+            unit_id:  food.unit_id  || null,
+            default_unit_id: food.default_unit_id || null,
+            recipe_id: food.recipe_id ? (recipeIdMap[food.recipe_id] || null) : null,
+            created_at: new Date().toISOString()
+          })
+        }
+        if (newFoods.length > 0) {
+          await supabase.from('foods').insert(newFoods)
+          set(s => ({ foods: [...s.foods, ...newFoods] }))
+        }
+
+        // 4. Değişimler
+        const newExchanges = []
+        for (const ex of masterExchanges) {
+          const mappedFoodId = foodIdMap[ex.food_id]
+          if (!mappedFoodId) continue
+          const remappedItems = (ex.items || []).map(item => ({
+            ...item,
+            equivalent_food_id: foodIdMap[item.equivalent_food_id] || item.equivalent_food_id
+          }))
+          const firstItem = remappedItems[0] || {}
+          const newId = generateId()
+          newExchanges.push({
+            id: newId,
+            food_id: mappedFoodId,
+            quantity_left: ex.quantity_left ?? 1,
+            left_unit_id: ex.left_unit_id || null,
+            items: remappedItems,
+            equivalent_food_id: firstItem.equivalent_food_id || null,
+            quantity: firstItem.quantity || null,
+            unit_id: firstItem.unit_id || null,
+            created_at: new Date().toISOString()
+          })
+        }
+        if (newExchanges.length > 0) {
+          await supabase.from('food_exchanges').insert(newExchanges)
+          set(s => ({ exchanges: [...s.exchanges, ...newExchanges] }))
+        }
+
+        return {
+          categories: newCats.length,
+          recipes: newRecipes.length,
+          foods: newFoods.length,
+          exchanges: newExchanges.length
+        }
+      },
+
       clearUserData: () => {
         set({
           foods: [],

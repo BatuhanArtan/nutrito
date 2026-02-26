@@ -13,6 +13,9 @@ export const isSupabaseConfigured = () => {
   return !!(supabaseUrl && supabaseAnonKey && supabase)
 }
 
+// Master hesap ID'si — besin/değişim/tarif paylaşımı için
+export const MASTER_USER_ID = 'f201c860-0ec2-4e7a-be2a-1e59e511f121'
+
 // Kullanıcı adı → Supabase Auth identifier (e-posta formatı gerekli; gerçek mail gönderilmez)
 // .local geçersiz sayılıyor, geçerli TLD kullanıyoruz (mail gönderilmez)
 const AUTH_DOMAIN = 'nutrito.app'

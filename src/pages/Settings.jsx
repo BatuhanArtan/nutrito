@@ -1,24 +1,27 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Database, Trash2, Download, Upload, Droplets, CloudUpload, LogOut, Target, AlertTriangle } from 'lucide-react'
+import { Database, Trash2, Download, Upload, Droplets, CloudUpload, LogOut, Target, AlertTriangle, PackagePlus } from 'lucide-react'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import useAppStore from '../stores/appStore'
 import { useAuthStore } from '../stores/authStore'
-import { isSupabaseConfigured, displayUsername } from '../lib/supabase'
+import { isSupabaseConfigured, displayUsername, MASTER_USER_ID } from '../lib/supabase'
 
 export default function Settings() {
   const navigate = useNavigate()
   const [exportStatus, setExportStatus] = useState('')
   const [pushStatus, setPushStatus] = useState('')
   const [pushLoading, setPushLoading] = useState(false)
+  const [importMasterStatus, setImportMasterStatus] = useState('')
+  const [importMasterLoading, setImportMasterLoading] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deletePassword, setDeletePassword] = useState('')
   const [deleteError, setDeleteError] = useState('')
 
   const store = useAppStore()
   const pushLocalDataToSupabase = useAppStore((state) => state.pushLocalDataToSupabase)
+  const importFromMaster = useAppStore((state) => state.importFromMaster)
   const clearUserData = useAppStore((state) => state.clearUserData)
   const user = useAuthStore((state) => state.user)
   const signOut = useAuthStore((state) => state.signOut)
@@ -127,6 +130,27 @@ export default function Settings() {
     setTimeout(() => setExportStatus(''), 3000)
   }
 
+  const handleImportFromMaster = async () => {
+    setImportMasterLoading(true)
+    setImportMasterStatus('')
+    try {
+      const result = await importFromMaster()
+      const parts = []
+      if (result.categories > 0) parts.push(`${result.categories} kategori`)
+      if (result.recipes > 0)    parts.push(`${result.recipes} tarif`)
+      if (result.foods > 0)      parts.push(`${result.foods} besin`)
+      if (result.exchanges > 0)  parts.push(`${result.exchanges} değişim`)
+      setImportMasterStatus(parts.length > 0
+        ? `✓ Aktarıldı: ${parts.join(', ')}`
+        : 'Tüm veriler zaten mevcut, yeni bir şey eklenmedi.')
+    } catch (err) {
+      setImportMasterStatus(`Hata: ${err?.message || 'Bilinmeyen hata'}`)
+    } finally {
+      setImportMasterLoading(false)
+      setTimeout(() => setImportMasterStatus(''), 6000)
+    }
+  }
+
   const handleSignOut = async () => {
     clearUserData()
     await signOut()
@@ -144,14 +168,37 @@ export default function Settings() {
           </CardHeader>
           <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <p className="text-sm text-[var(--text-secondary)]">{displayUsername(user.email)}</p>
-            <Button
-              variant="secondary"
-              onClick={handleSignOut}
-              style={{ alignSelf: 'flex-start', paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
-            >
-              <LogOut size={18} style={{ marginRight: '0.5rem' }} />
-              Çıkış Yap
-            </Button>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+              {user.id !== MASTER_USER_ID && (
+                <Button
+                  variant="secondary"
+                  onClick={handleImportFromMaster}
+                  disabled={importMasterLoading}
+                  style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+                >
+                  <PackagePlus size={18} style={{ marginRight: '0.5rem' }} />
+                  {importMasterLoading ? 'Aktarılıyor...' : 'Nutrito Besin Bilgilerini Aktar'}
+                </Button>
+              )}
+              <Button
+                variant="secondary"
+                onClick={handleSignOut}
+                style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+              >
+                <LogOut size={18} style={{ marginRight: '0.5rem' }} />
+                Çıkış Yap
+              </Button>
+            </div>
+            {importMasterStatus && (
+              <p className={`text-sm ${importMasterStatus.startsWith('Hata') ? 'text-red-400' : 'text-[var(--success)]'}`}>
+                {importMasterStatus}
+              </p>
+            )}
+            {user.id !== MASTER_USER_ID && (
+              <p className="text-xs text-[var(--text-secondary)]">
+                Master hesaptaki besin, değişim ve tarifleri hesabına kopyalar. Mevcut kayıtlar tekrarlanmaz.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}
