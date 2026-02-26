@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, Trash2, Edit2, Search, Shuffle, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Trash2, Edit2, Search, Shuffle, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
 import useAppStore from '../stores/appStore'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
@@ -15,6 +15,7 @@ export default function Recipes() {
   const updateRecipe = useAppStore((state) => state.updateRecipe)
   const deleteRecipe = useAppStore((state) => state.deleteRecipe)
   const addRecipeCategory = useAppStore((state) => state.addRecipeCategory)
+  const updateRecipeCategory = useAppStore((state) => state.updateRecipeCategory)
   const deleteRecipeCategory = useAppStore((state) => state.deleteRecipeCategory)
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -34,6 +35,10 @@ export default function Recipes() {
   const [categoryName, setCategoryName] = useState('')
   const [categoryColor, setCategoryColor] = useState('#e07a5f')
   const [addingCategoryForRecipe, setAddingCategoryForRecipe] = useState(false)
+
+  const [editingCategory, setEditingCategory] = useState(null) // { id, name, color }
+  const [editCatName, setEditCatName] = useState('')
+  const [editCatColor, setEditCatColor] = useState('#e07a5f')
 
   const [searchParams] = useSearchParams()
   useEffect(() => {
@@ -130,6 +135,19 @@ export default function Recipes() {
     if (confirm('Bu kategoriyi silmek istediğinize emin misiniz?')) {
       await deleteRecipeCategory(id)
     }
+  }
+
+  const openEditCategory = (cat) => {
+    setEditingCategory(cat)
+    setEditCatName(cat.name)
+    setEditCatColor(cat.color || '#e07a5f')
+  }
+
+  const handleSaveEditCategory = async (e) => {
+    e.preventDefault()
+    if (!editCatName.trim() || !editingCategory) return
+    await updateRecipeCategory(editingCategory.id, { name: editCatName.trim(), color: editCatColor })
+    setEditingCategory(null)
   }
 
   const handleHungry = () => {
@@ -242,7 +260,18 @@ export default function Recipes() {
               <span>{category.name}</span>
               <button
                 type="button"
+                onClick={() => openEditCategory(category)}
+                title="Düzenle"
+                style={{ display: 'flex', alignItems: 'center', opacity: 0.6, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: '0.1rem' }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
+              >
+                <Pencil size={11} />
+              </button>
+              <button
+                type="button"
                 onClick={() => handleDeleteCategory(category.id)}
+                title="Sil"
                 style={{ display: 'flex', alignItems: 'center', opacity: 0.6, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: '0.1rem' }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '1'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
@@ -509,6 +538,67 @@ export default function Recipes() {
             </Button>
           </div>
         )}
+      </Modal>
+
+      {/* Kategori düzenleme modalı */}
+      <Modal
+        isOpen={!!editingCategory}
+        onClose={() => setEditingCategory(null)}
+        title="Kategoriyi Düzenle"
+      >
+        <form onSubmit={handleSaveEditCategory} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label className="text-sm text-[var(--text-secondary)]">Kategori adı</label>
+            <input
+              type="text"
+              value={editCatName}
+              onChange={(e) => setEditCatName(e.target.value)}
+              autoFocus
+              className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-[var(--accent)] transition-colors"
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label className="text-sm text-[var(--text-secondary)]">Renk</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <input
+                type="color"
+                value={editCatColor}
+                onChange={(e) => setEditCatColor(e.target.value)}
+                style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', background: 'none' }}
+              />
+              <span
+                style={{
+                  padding: '0.25rem 0.875rem',
+                  borderRadius: '999px',
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  backgroundColor: editCatColor + '25',
+                  color: editCatColor,
+                  border: `1px solid ${editCatColor}50`
+                }}
+              >
+                {editCatName || 'Önizleme'}
+              </span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <Button
+              type="submit"
+              disabled={!editCatName.trim()}
+              style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+            >
+              Kaydet
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setEditingCategory(null)}
+              style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+            >
+              İptal
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   )

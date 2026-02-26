@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Plus, Coffee, Sun, Cookie, Moon, CheckCircle2, Circle, MinusCircle } from 'lucide-react'
+import { Plus, Coffee, Sun, Cookie, Moon, CheckCircle2, Circle, MinusCircle, X } from 'lucide-react'
 import useAppStore from '../../stores/appStore'
 import { toDateStr } from '../../lib/utils'
 import Card, { CardHeader, CardTitle, CardContent } from '../ui/Card'
@@ -21,7 +21,7 @@ const mealColors = {
   dinner: 'text-[var(--accent)]'
 }
 
-export default function MealCard({ date, mealType, title }) {
+export default function MealCard({ date, mealType, title, isCustom = false, onDelete }) {
   const [showAddModal, setShowAddModal] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const dragCounter = useRef(0)
@@ -44,7 +44,6 @@ export default function MealCard({ date, mealType, title }) {
   const isSkipped = meal?.skipped ?? skippedMeals[key] ?? false
   const completedAt = meal?.completed_at || null
 
-  const Icon = mealIcons[mealType] || Coffee
 
   const handleDragEnter = (e) => {
     e.preventDefault()
@@ -79,6 +78,8 @@ export default function MealCard({ date, mealType, title }) {
     await updateMealItem(itemId, { daily_meal_id: targetMeal.id })
   }
 
+  const MealIcon = isCustom ? Cookie : (mealIcons[mealType] || Cookie)
+
   const cardStyle = {
     ...(isDragOver ? { outline: '2px solid var(--accent)', outlineOffset: '2px' } : {}),
     ...(isCompleted ? { borderLeft: '3px solid #4ade80', opacity: 0.85 } : {}),
@@ -96,7 +97,7 @@ export default function MealCard({ date, mealType, title }) {
       >
         <CardHeader>
           <CardTitle className="flex items-center gap-2 flex-wrap">
-            <Icon size={20} className={mealColors[mealType]} />
+            <MealIcon size={20} className={isCustom ? 'text-[var(--warning)]' : mealColors[mealType]} />
             {title}
             {isCompleted && completedAt && (
               <span style={{ fontSize: '0.75rem', color: '#4ade80', opacity: 0.8, fontWeight: 400 }}>
@@ -141,6 +142,17 @@ export default function MealCard({ date, mealType, title }) {
             >
               <Plus size={18} />
             </Button>
+            {isCustom && onDelete && (
+              <button
+                onClick={() => { if (confirm(`"${title}" öğününü silmek istediğinize emin misiniz?`)) onDelete() }}
+                title="Bu ara öğünü sil"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', borderRadius: '6px', color: 'var(--text-secondary)', transition: 'color 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+              >
+                <X size={18} />
+              </button>
+            )}
           </div>
         </CardHeader>
 

@@ -1,14 +1,24 @@
-import { useState, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Copy, Calendar, Camera, Droplets } from 'lucide-react'
+import { useState, useRef, useMemo } from 'react'
+import { ChevronLeft, ChevronRight, Copy, Calendar, Camera, Droplets, PlusCircle } from 'lucide-react'
 import { toPng } from 'html-to-image'
 import useAppStore from '../stores/appStore'
-import { formatDisplayDate, getToday, mealTypeLabels, mealTypeOrder, toLocalDateStr } from '../lib/utils'
+import { formatDisplayDate, getToday, mealTypeLabels, mealTypeOrder, toLocalDateStr, toDateStr } from '../lib/utils'
 import Button from '../components/ui/Button'
 import MealCard from '../components/meals/MealCard'
 import WaterTracker from '../components/water/WaterTracker'
 import WeightInput from '../components/weight/WeightInput'
 import WeightChart from '../components/weight/WeightChart'
 import Modal from '../components/ui/Modal'
+
+// Sabit öğünlerin sort_order değerleri
+const FIXED_SORT_ORDERS = { breakfast: 10, lunch: 30, snack: 50, dinner: 70 }
+
+const AFTER_OPTIONS = [
+  { value: 'breakfast', label: 'Kahvaltıdan Sonra' },
+  { value: 'lunch',     label: 'Öğle Yemeğinden Sonra' },
+  { value: 'snack',     label: 'Ara Öğünden Sonra' },
+  { value: 'dinner',    label: 'Akşam Yemeğinden Sonra' },
+]
 
 export default function Dashboard() {
   const currentDate = useAppStore((state) => state.currentDate)
@@ -17,8 +27,15 @@ export default function Dashboard() {
   const waterLogs = useAppStore((state) => state.waterLogs)
   const waterTargetDefault = useAppStore((state) => state.waterTargetDefault)
   const waterGlassVolumeMl = useAppStore((state) => state.waterGlassVolumeMl)
+  const dailyMeals = useAppStore((state) => state.dailyMeals)
+  const addCustomMeal = useAppStore((state) => state.addCustomMeal)
+  const deleteCustomMeal = useAppStore((state) => state.deleteCustomMeal)
 
   const [showDateModal, setShowDateModal] = useState(false)
+  const [showAddSnackModal, setShowAddSnackModal] = useState(false)
+  const [snackLabel, setSnackLabel] = useState('')
+  const [snackAfter, setSnackAfter] = useState('breakfast')
+  const [snackLoading, setSnackLoading] = useState(false)
   const [copyFromDate, setCopyFromDate] = useState('')
   const [copyStatus, setCopyStatus] = useState('')
   const [copyLoading, setCopyLoading] = useState(false)
@@ -82,6 +99,34 @@ export default function Dashboard() {
     const d = new Date(dateStr + 'T12:00:00')
     d.setDate(d.getDate() - 1)
     return toLocalDateStr(d)
+  }
+
+  // Günün öğünlerini sıralı şekilde oluştur (sabit + custom)
+  const mealsForDate = useMemo(() => {
+    const fixed = mealTypeOrder.map(type => ({
+      type,
+      label: mealTypeLabels[type],
+      sortOrder: FIXED_SORT_ORDERS[type],
+      isCustom: false
+    }))
+    const custom = dailyMeals
+      .filter(m => toDateStr(m.date) === toDateStr(currentDate) && m.is_custom)
+      .map(m => ({
+        type: m.meal_type,
+        label: m.label || 'Ara Öğün',
+        sortOrder: m.sort_order ?? 99,
+        isCustom: true
+      }))
+    return [...fixed, ...custom].sort((a, b) => a.sortOrder - b.sortOrder)
+  }, [dailyMeals, currentDate])
+
+  const handleAddSnack = async () => {
+    setSnackLoading(true)
+    await addCustomMeal(currentDate, snackLabel.trim() || 'Ara Öğün', snackAfter)
+    setSnackLabel('')
+    setSnackAfter('breakfast')
+    setShowAddSnackModal(false)
+    setSnackLoading(false)
   }
 
   const handleCopyFromPrevious = async () => {
@@ -151,7 +196,7 @@ export default function Dashboard() {
       </div>
 
       {/* Öğün aktar butonları */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }} className="sm:grid-cols-4">
         <Button
           variant="secondary"
           size="sm"
@@ -175,6 +220,15 @@ export default function Dashboard() {
         <Button
           variant="secondary"
           size="sm"
+          onClick={() => setShowAddSnackModal(true)}
+          style={{ padding: '0.5rem 0.5rem', justifyContent: 'center', textAlign: 'center', whiteSpace: 'normal', lineHeight: '1.2' }}
+        >
+          <PlusCircle size={15} style={{ marginRight: '0.3rem', flexShrink: 0 }} />
+          Ara Öğün Ekle
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={handleCapture}
           disabled={captureStatus === 'loading'}
           style={{ padding: '0.5rem 0.5rem', justifyContent: 'center', textAlign: 'center', whiteSpace: 'normal', lineHeight: '1.2' }}
@@ -193,12 +247,14 @@ export default function Dashboard() {
           {formatDisplayDate(currentDate)}
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '1rem' }} className="md:grid-cols-2">
-          {mealTypeOrder.map((mealType) => (
+          {mealsForDate.map((meal) => (
             <MealCard
-              key={mealType}
+              key={meal.type}
               date={currentDate}
-              mealType={mealType}
-              title={mealTypeLabels[mealType]}
+              mealType={meal.type}
+              title={meal.label}
+              isCustom={meal.isCustom}
+              onDelete={meal.isCustom ? () => deleteCustomMeal(currentDate, meal.type) : undefined}
             />
           ))}
         </div>
@@ -237,6 +293,51 @@ export default function Dashboard() {
 
       {/* Weight Chart */}
       <WeightChart />
+
+      <Modal isOpen={showAddSnackModal} onClose={() => { setShowAddSnackModal(false); setSnackLabel(''); setSnackAfter('breakfast') }} title="Ara Öğün Ekle">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label className="text-sm text-[var(--text-secondary)]">Öğün adı</label>
+            <input
+              type="text"
+              value={snackLabel}
+              onChange={(e) => setSnackLabel(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddSnack()}
+              placeholder="örn. Gece Atıştırması (boş kalırsa ARA ÖĞÜN ismiyle eklenir.)"
+              autoFocus
+              className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-[var(--accent)]"
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label className="text-sm text-[var(--text-secondary)]">Konumu</label>
+            <select
+              value={snackAfter}
+              onChange={(e) => setSnackAfter(e.target.value)}
+              className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-[var(--accent)]"
+            >
+              {AFTER_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <Button
+              onClick={handleAddSnack}
+              disabled={snackLoading}
+              style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+            >
+              {snackLoading ? 'Ekleniyor...' : 'Ekle'}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => { setShowAddSnackModal(false); setSnackLabel(''); setSnackAfter('breakfast') }}
+              style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
+            >
+              İptal
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal isOpen={showDateModal} onClose={() => { setShowDateModal(false); setCopyFromDate('') }} title="Tarihten öğün aktar">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

@@ -379,6 +379,16 @@ const useAppStore = create(
         return newCategory
       },
 
+      updateRecipeCategory: async (id, updates) => {
+        set((state) => ({
+          recipeCategories: state.recipeCategories.map(c => c.id === id ? { ...c, ...updates } : c)
+        }))
+        if (isSupabaseConfigured()) {
+          const { error } = await supabase.from('recipe_categories').update(updates).eq('id', id)
+          if (error) console.error('Error updating category:', error)
+        }
+      },
+
       deleteRecipeCategory: async (id) => {
         set((state) => ({ recipeCategories: state.recipeCategories.filter(c => c.id !== id) }))
 
@@ -433,6 +443,49 @@ const useAppStore = create(
       },
 
       // Daily Meals
+      // Custom ara öğünler için sort_order şeması:
+      // breakfast=10, lunch=30, snack=50, dinner=70
+      // custom: after breakfast→20+, after lunch→40+, after snack→60+, after dinner→80+
+      CUSTOM_MEAL_BASES: { breakfast: 20, lunch: 40, snack: 60, dinner: 80 },
+
+      addCustomMeal: async (date, label, afterMealType) => {
+        const bases = { breakfast: 20, lunch: 40, snack: 60, dinner: 80 }
+        const base = bases[afterMealType] ?? 80
+        const existing = get().dailyMeals.filter(m =>
+          toDateStr(m.date) === toDateStr(date) && m.is_custom &&
+          m.sort_order >= base && m.sort_order < base + 9
+        )
+        const sortOrder = base + existing.length
+        const mealType = `custom_${generateId()}`
+        const id = generateId()
+        const newMeal = {
+          id, date: toDateStr(date), meal_type: mealType,
+          is_custom: true, label: label || 'Ara Öğün', sort_order: sortOrder,
+          completed: false, completed_at: null, skipped: false,
+          created_at: new Date().toISOString()
+        }
+        set(s => ({ dailyMeals: [...s.dailyMeals, newMeal] }))
+        if (isSupabaseConfigured()) {
+          const { data, error } = await supabase.from('daily_meals').insert(newMeal).select().single()
+          if (error) console.error('Error adding custom meal:', error)
+          else set(s => ({ dailyMeals: s.dailyMeals.map(m => m.id === id ? data : m) }))
+        }
+        return newMeal
+      },
+
+      deleteCustomMeal: async (date, mealType) => {
+        const meal = get().dailyMeals.find(m => toDateStr(m.date) === toDateStr(date) && m.meal_type === mealType)
+        if (!meal) return
+        set(s => ({
+          dailyMeals: s.dailyMeals.filter(m => !(toDateStr(m.date) === toDateStr(date) && m.meal_type === mealType)),
+          mealItems: s.mealItems.filter(i => i.daily_meal_id !== meal.id)
+        }))
+        if (isSupabaseConfigured()) {
+          await supabase.from('meal_items').delete().eq('daily_meal_id', meal.id)
+          await supabase.from('daily_meals').delete().eq('id', meal.id)
+        }
+      },
+
       getOrCreateDailyMeal: async (date, mealType) => {
         const { dailyMeals } = get()
         const dateNorm = toDateStr(date)
