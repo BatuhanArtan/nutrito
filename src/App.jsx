@@ -27,8 +27,8 @@ function App() {
       const prevUser = useAuthStore.getState().user
       useAuthStore.getState().setUser(u)
       if (u) {
-        // Farklı kullanıcı girince önce önceki veriyi temizle
-        if (!prevUser || prevUser.id !== u.id) {
+        // Sadece farklı kullanıcıya geçişte temizle (sayfa yenileme değil)
+        if (prevUser && prevUser.id !== u.id) {
           useAppStore.getState().clearUserData()
         }
         initializeData()

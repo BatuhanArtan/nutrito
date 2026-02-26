@@ -114,7 +114,7 @@ const useAppStore = create(
         const val = Math.max(1, Math.min(99, Number(n) || 8))
         set({ waterTargetDefault: val })
         if (isSupabaseConfigured()) {
-          await supabase.from('app_settings').upsert({ key: 'waterTargetDefault', value: val }, { onConflict: 'key' })
+          await supabase.from('app_settings').upsert({ key: 'waterTargetDefault', value: val }, { onConflict: 'user_id,key' })
         }
       },
       waterGlassVolumeMl: 200,
@@ -122,7 +122,7 @@ const useAppStore = create(
         const val = Math.max(50, Math.min(500, Number(n) || 200))
         set({ waterGlassVolumeMl: val })
         if (isSupabaseConfigured()) {
-          await supabase.from('app_settings').upsert({ key: 'waterGlassVolumeMl', value: val }, { onConflict: 'key' })
+          await supabase.from('app_settings').upsert({ key: 'waterGlassVolumeMl', value: val }, { onConflict: 'user_id,key' })
         }
       },
 
@@ -132,7 +132,7 @@ const useAppStore = create(
         const val = v === '' || v === null ? null : Math.max(0, Number(v))
         set({ weightTarget: val })
         if (isSupabaseConfigured()) {
-          await supabase.from('app_settings').upsert({ key: 'weightTarget', value: val }, { onConflict: 'key' })
+          await supabase.from('app_settings').upsert({ key: 'weightTarget', value: val }, { onConflict: 'user_id,key' })
         }
       },
 
