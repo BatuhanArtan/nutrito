@@ -1,20 +1,7 @@
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
+// Energy notification handler — workbox tarafından generated SW'ye importScripts ile dahil edilir
 
-precacheAndRoute(self.__WB_MANIFEST)
-cleanupOutdatedCaches()
+const energyChannel = new BroadcastChannel('energy-channel')
 
-// Energy level labels for notification body
-const ENERGY_LABELS = {
-  1: '😴 Çok Düşük',
-  2: '😟 Düşük',
-  3: '😐 Orta',
-  4: '🙂 Yüksek',
-  5: '⚡ Çok Yüksek'
-}
-
-const channel = new BroadcastChannel('energy-channel')
-
-// App'ten gelen mesajları dinle: bildirim göster
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SHOW_ENERGY_NOTIFICATION') {
     self.registration.showNotification('Enerji Seviyeni Nasıl?', {
@@ -35,15 +22,12 @@ self.addEventListener('message', (event) => {
   }
 })
 
-// Bildirim action butonuna basıldığında
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
 
   const level = parseInt(event.action)
-
   if (level >= 1 && level <= 5) {
-    // BroadcastChannel ile app'e gönder
-    channel.postMessage({
+    energyChannel.postMessage({
       type: 'ENERGY_LEVEL_SELECTED',
       level,
       timestamp: new Date().toISOString()
@@ -51,7 +35,6 @@ self.addEventListener('notificationclick', (event) => {
     return
   }
 
-  // Bildirim gövdesine tıklandı — uygulamayı aç/odakla
   event.waitUntil(
     self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then((clients) => {
       const focused = clients.find((c) => c.focused)
