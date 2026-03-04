@@ -51,26 +51,38 @@ export default function Dashboard() {
         backgroundColor: '#111111'
       })
 
-      // Panoya kopyala
-      try {
-        const res = await fetch(dataUrl)
-        const blob = await res.blob()
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-      } catch (clipErr) {
-        console.warn('Clipboard API failed:', clipErr)
-      }
+      const res = await fetch(dataUrl)
+      const blob = await res.blob()
+      const fileName = `nutrito-${currentDate}.png`
+      const file = new File([blob], fileName, { type: 'image/png' })
 
-      // İndir
-      const link = document.createElement('a')
-      link.download = `nutrito-${currentDate}.png`
-      link.href = dataUrl
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+      if (isMobile && navigator.canShare?.({ files: [file] })) {
+        // Mobil: Share sheet aç
+        await navigator.share({ files: [file], title: 'Nutrito', text: fileName })
+      } else {
+        // Desktop: Panoya kopyala + indir
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+        } catch (clipErr) {
+          console.warn('Clipboard API failed:', clipErr)
+        }
+        const link = document.createElement('a')
+        link.download = fileName
+        link.href = dataUrl
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
 
       setCaptureStatus('done')
       setTimeout(() => setCaptureStatus(''), 2500)
     } catch (e) {
+      if (e?.name === 'AbortError') {
+        setCaptureStatus('')
+        return
+      }
       console.error('Capture failed:', e)
       setCaptureStatus('error')
       setTimeout(() => setCaptureStatus(''), 3000)
