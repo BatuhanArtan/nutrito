@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import Button from './Button'
@@ -35,19 +36,20 @@ export default function Modal({
     if (e.target === e.currentTarget) onClose()
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
       onClick={handleBackdropClick}
     >
       <div
         ref={modalRef}
         className={cn(
-          'bg-[var(--bg-secondary)] rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col',
+          'rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col',
           className
         )}
+        style={{ backgroundColor: '#252525' }}
       >
-        {/* Header - inline padding so it always applies */}
+        {/* Header */}
         <div
           className="flex items-center justify-between border-b border-[var(--bg-tertiary)] shrink-0"
           style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem', paddingTop: '1.5rem', paddingBottom: '1.5rem' }}
@@ -68,6 +70,7 @@ export default function Modal({
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

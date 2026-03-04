@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Database, Trash2, Download, Upload, Droplets, CloudUpload, LogOut, Target, AlertTriangle, PackagePlus } from 'lucide-react'
+import { Database, Trash2, Download, Upload, Droplets, CloudUpload, LogOut, Target, AlertTriangle, PackagePlus, Sparkles } from 'lucide-react'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
@@ -31,6 +31,8 @@ export default function Settings() {
   const setWaterGlassVolumeMl = useAppStore((state) => state.setWaterGlassVolumeMl)
   const weightTarget = useAppStore((state) => state.weightTarget)
   const setWeightTarget = useAppStore((state) => state.setWeightTarget)
+  const geminiUrl = useAppStore((state) => state.geminiUrl)
+  const setGeminiUrl = useAppStore((state) => state.setGeminiUrl)
 
   const handleExport = () => {
     const data = {
@@ -369,6 +371,28 @@ export default function Settings() {
               Su ekranında bardak ve litre birlikte gösterilir (örn. 8×200ml = 1,6 L).
             </p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles size={20} className="text-purple-400" />
+            Gemini Butonu
+          </CardTitle>
+        </CardHeader>
+        <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <label className="text-sm text-[var(--text-secondary)]"> Hedef URL</label>
+          <input
+            type="url"
+            value={geminiUrl}
+            onChange={(e) => setGeminiUrl(e.target.value)}
+            placeholder="https://gemini.google.com/gem/..."
+            className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-[var(--accent)] transition-colors w-full"
+          />
+          <p className="text-xs text-[var(--text-secondary)]">
+            Boş bırakılırsa varsayılan Gem linki kullanılır.
+          </p>
         </CardContent>
       </Card>
 

@@ -136,6 +136,10 @@ const useAppStore = create(
         }
       },
 
+      // Gemini butonu URL'si
+      geminiUrl: '',
+      setGeminiUrl: (url) => set({ geminiUrl: url }),
+
       // Loading state
       isLoading: false,
       setIsLoading: (loading) => set({ isLoading: loading }),
@@ -881,7 +885,8 @@ const useAppStore = create(
         weightLogs: state.weightLogs,
         waterTargetDefault: state.waterTargetDefault,
         waterGlassVolumeMl: state.waterGlassVolumeMl,
-        weightTarget: state.weightTarget
+        weightTarget: state.weightTarget,
+        geminiUrl: state.geminiUrl
       }),
       merge: (persisted, current) => ({
         ...current,

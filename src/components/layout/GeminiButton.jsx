@@ -1,18 +1,25 @@
 import { Sparkles } from 'lucide-react'
+import useAppStore from '../../stores/appStore'
 
-const WEB_URL = 'https://gemini.google.com/gem/a445a7ad3082/39929244a9227eab'
-const ANDROID_INTENT = `intent://gemini.google.com/gem/a445a7ad3082/39929244a9227eab#Intent;scheme=https;package=com.google.android.apps.googleassistant;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(WEB_URL)};end`
+const DEFAULT_WEB_URL = 'https://gemini.google.com/gem/a445a7ad3082/39929244a9227eab'
+
+function buildAndroidIntent(url) {
+  return `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.google.android.apps.googleassistant;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(url)};end`
+}
 
 export default function GeminiButton() {
+  const geminiUrl = useAppStore((state) => state.geminiUrl)
+  const webUrl = geminiUrl?.trim() || DEFAULT_WEB_URL
+
   const handleClick = () => {
     const isAndroid = /Android/i.test(navigator.userAgent)
     if (isAndroid) {
-      window.location.href = ANDROID_INTENT
+      window.location.href = buildAndroidIntent(webUrl)
       setTimeout(() => {
-        window.open(WEB_URL, '_blank', 'noopener,noreferrer')
+        window.open(webUrl, '_blank', 'noopener,noreferrer')
       }, 2000)
     } else {
-      window.open(WEB_URL, '_blank', 'noopener,noreferrer')
+      window.open(webUrl, '_blank', 'noopener,noreferrer')
     }
   }
 

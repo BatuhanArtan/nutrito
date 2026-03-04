@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Trash2, ArrowLeftRight, BookOpen, Copy } from 'lucide-react'
+import { Trash2, ArrowLeftRight, BookOpen, Copy, Pencil } from 'lucide-react'
 import useAppStore from '../../stores/appStore'
 import Button from '../ui/Button'
 import ExchangeModal from './ExchangeModal'
+import EditMealItemModal from './EditMealItemModal'
 
 export default function FoodItem({ item }) {
   const [showExchangeModal, setShowExchangeModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
   const deleteMealItem = useAppStore((state) => state.deleteMealItem)
   const addMealItem = useAppStore((state) => state.addMealItem)
   const updateMealItem = useAppStore((state) => state.updateMealItem)
@@ -15,7 +17,9 @@ export default function FoodItem({ item }) {
   const displayName = item.food?.name || item.recipe?.title || 'Bilinmeyen'
   const unitName = item.unit?.abbreviation || item.unit?.name || ''
 
-  const handleDelete = async () => {
+  const handleDelete = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
     await deleteMealItem(item.id)
   }
 
@@ -35,7 +39,6 @@ export default function FoodItem({ item }) {
     const rightItems = exchange.rightItems || []
     if (rightItems.length === 0) return
 
-    // İlk sağ besinle mevcut item'ı güncelle
     const first = rightItems[0]
     await updateMealItem(item.id, {
       food_id: first.food?.id || null,
@@ -44,7 +47,6 @@ export default function FoodItem({ item }) {
       unit_id: first.unit?.id || null
     })
 
-    // Birden fazla sağ besin varsa kalanları ekle
     for (let i = 1; i < rightItems.length; i++) {
       const ri = rightItems[i]
       await addMealItem({
@@ -70,21 +72,34 @@ export default function FoodItem({ item }) {
         className="flex items-center justify-between bg-[var(--bg-tertiary)] rounded-lg group"
         style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', cursor: 'grab', overflow: 'hidden', minWidth: 0 }}
       >
+        {/* Tıklanabilir alan — edit modal açar */}
         <button
           type="button"
-          onClick={() => setShowExchangeModal(true)}
+          onClick={() => setShowEditModal(true)}
           className="flex items-center gap-2 text-left flex-1 hover:text-[var(--text-primary)] transition-colors min-w-0 overflow-hidden"
           style={{ minWidth: 0 }}
         >
           <span className="text-sm text-[var(--text-primary)] truncate">
             {item.quantity} {unitName} {displayName}
           </span>
-          {item.food && (
-            <ArrowLeftRight size={14} className="text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-          )}
+          <Pencil size={12} className="text-[var(--text-secondary)] opacity-0 group-hover:opacity-60 transition-opacity flex-shrink-0" />
         </button>
 
         <div className="flex items-center flex-shrink-0" style={{ gap: '0' }}>
+          {/* Exchange — sadece food olan item'larda */}
+          {item.food && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowExchangeModal(true) }}
+              title="Değişim uygula"
+              className="opacity-0 group-hover:opacity-70 hover:!opacity-100 transition-opacity hidden-mobile"
+            >
+              <ArrowLeftRight size={14} className="text-[var(--text-secondary)]" />
+            </Button>
+          )}
+
           {item.food?.recipe_id && (
             <Button
               type="button"
@@ -117,17 +132,19 @@ export default function FoodItem({ item }) {
             type="button"
             variant="ghost"
             size="icon"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              handleDelete()
-            }}
+            onClick={handleDelete}
             className="opacity-70 group-hover:opacity-100 transition-opacity"
           >
             <Trash2 size={14} className="text-red-400" />
           </Button>
         </div>
       </li>
+
+      <EditMealItemModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        item={item}
+      />
 
       {item.food && (
         <ExchangeModal
