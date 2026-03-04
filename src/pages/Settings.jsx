@@ -408,7 +408,7 @@ export default function Settings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap size={20} className="text-green-400" />
-            Enerji Bildirimleri
+            Enerji Takibi
           </CardTitle>
         </CardHeader>
         <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

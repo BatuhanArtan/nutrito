@@ -48,12 +48,12 @@ export default function Layout() {
       <button
         type="button"
         onClick={handleEnergyClick}
-        className="fixed z-50 bg-gradient-to-r from-green-500 to-emerald-500
+        className="fixed bottom-24 md:bottom-6 right-[5.25rem] md:right-[5.75rem] z-50
+                   bg-gradient-to-r from-green-500 to-emerald-500
                    hover:from-green-600 hover:to-emerald-600
                    text-white p-4 rounded-full shadow-lg
                    transition-all duration-300 hover:scale-110
                    flex items-center justify-center border-0 cursor-pointer"
-        style={{ bottom: '6rem', right: '5rem' }}
         title="Enerji Takibi"
       >
         <Zap size={24} />
