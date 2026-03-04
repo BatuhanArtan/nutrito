@@ -85,7 +85,7 @@ export default function FoodItem({ item }) {
           <Pencil size={12} className="text-[var(--text-secondary)] opacity-0 group-hover:opacity-60 transition-opacity flex-shrink-0" />
         </button>
 
-        <div className="flex items-center flex-shrink-0" style={{ gap: '0' }}>
+        <div className="flex items-center flex-shrink-0" style={{ gap: '0.25rem' }}>
           {/* Exchange — sadece food olan item'larda */}
           {item.food && (
             <Button

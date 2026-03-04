@@ -48,7 +48,7 @@ export default function Layout() {
       <button
         type="button"
         onClick={handleEnergyClick}
-        className="fixed bottom-24 md:bottom-6 right-[5.25rem] md:right-[5.75rem] z-50
+        className="fixed bottom-[7.5rem] md:bottom-[5.5rem] right-4 md:right-6 z-50
                    bg-gradient-to-r from-green-500 to-emerald-500
                    hover:from-green-600 hover:to-emerald-600
                    text-white p-4 rounded-full shadow-lg

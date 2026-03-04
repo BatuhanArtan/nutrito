@@ -150,7 +150,9 @@ const useAppStore = create(
         const newLog = { id: generateId(), timestamp: ts, date, level, created_at: new Date().toISOString() }
         set((state) => ({ energyLogs: [...state.energyLogs, newLog] }))
         if (isSupabaseConfigured()) {
-          const { data, error } = await supabase.from('energy_logs').insert(newLog).select().single()
+          const { data: { user } } = await supabase.auth.getUser()
+          const insertData = user ? { ...newLog, user_id: user.id } : newLog
+          const { data, error } = await supabase.from('energy_logs').insert(insertData).select().single()
           if (error) console.error('Error adding energy log:', error)
           else set((state) => ({ energyLogs: state.energyLogs.map(l => l.id === newLog.id ? data : l) }))
         }
@@ -167,18 +169,36 @@ const useAppStore = create(
 
       // Enerji bildirim aralığı (saniye)
       energyNotifIntervalSec: 30,
-      setEnergyNotifIntervalSec: (sec) => {
+      setEnergyNotifIntervalSec: async (sec) => {
         const val = Math.max(10, Number(sec) || 30)
         set({ energyNotifIntervalSec: val })
+        if (isSupabaseConfigured()) {
+          await supabase.from('app_settings').upsert({ key: 'energyNotifIntervalSec', value: val }, { onConflict: 'user_id,key' })
+        }
       },
 
       // Enerji bildirimleri toggle + saat aralığı
       energyNotifEnabled: false,
-      setEnergyNotifEnabled: (v) => set({ energyNotifEnabled: v }),
+      setEnergyNotifEnabled: async (v) => {
+        set({ energyNotifEnabled: v })
+        if (isSupabaseConfigured()) {
+          await supabase.from('app_settings').upsert({ key: 'energyNotifEnabled', value: v }, { onConflict: 'user_id,key' })
+        }
+      },
       energyNotifStart: '09:30',
-      setEnergyNotifStart: (v) => set({ energyNotifStart: v }),
+      setEnergyNotifStart: async (v) => {
+        set({ energyNotifStart: v })
+        if (isSupabaseConfigured()) {
+          await supabase.from('app_settings').upsert({ key: 'energyNotifStart', value: v }, { onConflict: 'user_id,key' })
+        }
+      },
       energyNotifEnd: '22:30',
-      setEnergyNotifEnd: (v) => set({ energyNotifEnd: v }),
+      setEnergyNotifEnd: async (v) => {
+        set({ energyNotifEnd: v })
+        if (isSupabaseConfigured()) {
+          await supabase.from('app_settings').upsert({ key: 'energyNotifEnd', value: v }, { onConflict: 'user_id,key' })
+        }
+      },
 
       // Loading state
       isLoading: false,
@@ -203,8 +223,7 @@ const useAppStore = create(
             { data: dailyMeals },
             { data: mealItems },
             { data: waterLogs },
-            { data: weightLogs },
-            { data: energyLogs }
+            { data: weightLogs }
           ] = await Promise.all([
             supabase.from('units').select('*').order('name'),
             supabase.from('foods').select('*').order('name'),
@@ -214,9 +233,19 @@ const useAppStore = create(
             supabase.from('daily_meals').select('*'),
             supabase.from('meal_items').select('*'),
             supabase.from('water_logs').select('*').order('date', { ascending: false }),
-            supabase.from('weight_logs').select('*').order('date', { ascending: false }),
-            supabase.from('energy_logs').select('*').order('timestamp', { ascending: false })
+            supabase.from('weight_logs').select('*').order('date', { ascending: false })
           ])
+
+          // energy_logs ayrı çek — tablo yoksa diğer verileri etkilemesin
+          let energyLogs = null
+          try {
+            const { data: elData, error: elError } = await supabase
+              .from('energy_logs').select('*').order('timestamp', { ascending: false })
+            if (!elError) energyLogs = elData
+            else console.warn('energy_logs fetch skipped:', elError.message)
+          } catch (e) {
+            console.warn('energy_logs fetch failed:', e)
+          }
 
           // app_settings ayrı çek — tablo yoksa diğer verileri etkilemesin
           const { data: appSettings } = await supabase.from('app_settings').select('*')
@@ -258,7 +287,11 @@ const useAppStore = create(
             energyLogs: energyLogs || [],
             ...(settingsMap.weightTarget !== undefined && { weightTarget: settingsMap.weightTarget }),
             ...(settingsMap.waterTargetDefault !== undefined && { waterTargetDefault: settingsMap.waterTargetDefault }),
-            ...(settingsMap.waterGlassVolumeMl !== undefined && { waterGlassVolumeMl: settingsMap.waterGlassVolumeMl })
+            ...(settingsMap.waterGlassVolumeMl !== undefined && { waterGlassVolumeMl: settingsMap.waterGlassVolumeMl }),
+            ...(settingsMap.energyNotifEnabled !== undefined && { energyNotifEnabled: settingsMap.energyNotifEnabled }),
+            ...(settingsMap.energyNotifIntervalSec !== undefined && { energyNotifIntervalSec: settingsMap.energyNotifIntervalSec }),
+            ...(settingsMap.energyNotifStart !== undefined && { energyNotifStart: settingsMap.energyNotifStart }),
+            ...(settingsMap.energyNotifEnd !== undefined && { energyNotifEnd: settingsMap.energyNotifEnd })
           })
         } catch (error) {
           console.error('Error initializing data:', error)
