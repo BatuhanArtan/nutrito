@@ -308,7 +308,7 @@ export default function WeightChart() {
 
             return (
               <>
-                <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0, maxHeight: '55vh', overflowY: 'auto' }}>
+                <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: '0 0.25rem', margin: 0, maxHeight: '55vh', overflowY: 'auto' }}>
                   {sortedAllLogs.map((log, index) => {
                     const prevLog = sortedAllLogs[index + 1]
                     const diff = prevLog ? parseFloat((log.weight - prevLog.weight).toFixed(1)) : null
@@ -321,15 +321,15 @@ export default function WeightChart() {
                     return (
                       <li
                         key={log.id}
-                        className="flex items-center justify-between bg-[var(--bg-tertiary)] rounded-lg"
-                        style={{ paddingLeft: '1rem', paddingRight: '0.5rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', gap: '0.5rem' }}
+                        className="flex items-center bg-[var(--bg-tertiary)] rounded-lg"
+                        style={{ padding: '0.625rem 0.625rem 0.625rem 0.875rem', gap: '0.5rem', minWidth: 0 }}
                       >
-                        <span className="text-sm text-[var(--text-secondary)] flex-shrink-0" style={{ minWidth: '7rem' }}>
+                        <span className="text-xs text-[var(--text-secondary)] flex-shrink-0" style={{ width: '5.5rem' }}>
                           {formatDate(log.date)}
                         </span>
 
                         {editingLog?.id === log.id ? (
-                          <div className="flex items-center gap-2 flex-1">
+                          <div className="flex items-center gap-1 flex-1 min-w-0">
                             <input
                               type="number"
                               value={editWeight}
@@ -337,9 +337,9 @@ export default function WeightChart() {
                               step="0.1"
                               min="0"
                               autoFocus
-                              className="bg-[var(--bg-secondary)] border border-[var(--accent)] rounded-lg px-2 py-1 text-[var(--text-primary)] text-sm w-20"
+                              className="bg-[var(--bg-secondary)] border border-[var(--accent)] rounded-lg px-2 py-1 text-[var(--text-primary)] text-sm w-16 flex-shrink-0"
                             />
-                            <span className="text-xs text-[var(--text-secondary)]">kg</span>
+                            <span className="text-xs text-[var(--text-secondary)] flex-shrink-0">kg</span>
                             <Button variant="ghost" size="icon" onClick={saveEdit}>
                               <Check size={14} className="text-[var(--success)]" />
                             </Button>
@@ -349,15 +349,13 @@ export default function WeightChart() {
                           </div>
                         ) : (
                           <>
-                            <span className="text-sm font-semibold flex-1" style={{ color: weightColor }}>
+                            <span className="text-sm font-semibold flex-shrink-0" style={{ color: weightColor, width: '4rem' }}>
                               {log.weight} kg
                             </span>
-                            {diff !== null && (
-                              <span className="text-xs flex-shrink-0" style={{ color: diffColor, minWidth: '4rem', textAlign: 'right', marginRight: '0.25rem' }}>
-                                {diff > 0 ? '+' : ''}{diff} kg
-                              </span>
-                            )}
-                            <div className="flex gap-1 flex-shrink-0">
+                            <span className="text-xs flex-1" style={{ color: diff !== null ? diffColor : 'transparent' }}>
+                              {diff !== null ? `${diff > 0 ? '+' : ''}${diff} kg` : ''}
+                            </span>
+                            <div className="flex gap-0 flex-shrink-0">
                               <Button variant="ghost" size="icon" onClick={() => startEdit(log)}>
                                 <Edit2 size={14} className="text-[var(--text-secondary)]" />
                               </Button>
@@ -374,18 +372,19 @@ export default function WeightChart() {
 
                 {totalDiff !== null && (
                   <div style={{
-                    marginTop: '0.5rem',
-                    padding: '0.75rem 1rem',
+                    marginTop: '0.25rem',
+                    padding: '0.75rem 0.875rem',
                     background: 'var(--bg-tertiary)',
                     borderRadius: '0.5rem',
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    gap: '0.5rem'
                   }}>
-                    <span className="text-sm text-[var(--text-secondary)]">
+                    <span className="text-xs text-[var(--text-secondary)]" style={{ lineHeight: 1.4 }}>
                       Toplam ({formatDate(oldest.date)} → {formatDate(newest.date)})
                     </span>
-                    <span className="text-sm font-bold" style={{ color: totalColor }}>
+                    <span className="text-sm font-bold flex-shrink-0" style={{ color: totalColor }}>
                       {totalDiff > 0 ? '+' : ''}{totalDiff} kg
                     </span>
                   </div>
