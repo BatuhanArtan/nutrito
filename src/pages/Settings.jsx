@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Database, Trash2, Download, Upload, Droplets, CloudUpload, LogOut, Target, AlertTriangle, PackagePlus, Sparkles } from 'lucide-react'
+import { Database, Trash2, Download, Upload, Droplets, CloudUpload, LogOut, Target, AlertTriangle, PackagePlus, Sparkles, Zap } from 'lucide-react'
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
@@ -33,6 +33,14 @@ export default function Settings() {
   const setWeightTarget = useAppStore((state) => state.setWeightTarget)
   const geminiUrl = useAppStore((state) => state.geminiUrl)
   const setGeminiUrl = useAppStore((state) => state.setGeminiUrl)
+  const energyNotifIntervalSec = useAppStore((state) => state.energyNotifIntervalSec)
+  const setEnergyNotifIntervalSec = useAppStore((state) => state.setEnergyNotifIntervalSec)
+  const energyNotifEnabled = useAppStore((state) => state.energyNotifEnabled)
+  const setEnergyNotifEnabled = useAppStore((state) => state.setEnergyNotifEnabled)
+  const energyNotifStart = useAppStore((state) => state.energyNotifStart)
+  const setEnergyNotifStart = useAppStore((state) => state.setEnergyNotifStart)
+  const energyNotifEnd = useAppStore((state) => state.energyNotifEnd)
+  const setEnergyNotifEnd = useAppStore((state) => state.setEnergyNotifEnd)
 
   const handleExport = () => {
     const data = {
@@ -393,6 +401,86 @@ export default function Settings() {
           <p className="text-xs text-[var(--text-secondary)]">
             Boş bırakılırsa varsayılan Gem linki kullanılır.
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap size={20} className="text-green-400" />
+            Enerji Bildirimleri
+          </CardTitle>
+        </CardHeader>
+        <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="text-sm text-[var(--text-primary)]">Bildirimleri Etkinleştir</span>
+            <button
+              type="button"
+              onClick={async () => {
+                const next = !energyNotifEnabled
+                if (next && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+                  await Notification.requestPermission()
+                }
+                setEnergyNotifEnabled(next)
+              }}
+              style={{
+                width: '2.75rem', height: '1.5rem', borderRadius: '999px', border: 'none', cursor: 'pointer',
+                background: energyNotifEnabled ? 'var(--success)' : 'var(--bg-tertiary)',
+                position: 'relative', transition: 'background 0.2s', flexShrink: 0
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: '0.125rem',
+                left: energyNotifEnabled ? 'calc(100% - 1.375rem)' : '0.125rem',
+                width: '1.25rem', height: '1.25rem', borderRadius: '50%',
+                background: '#fff', transition: 'left 0.2s', display: 'block'
+              }} />
+            </button>
+          </div>
+
+          {energyNotifEnabled && (
+            <>
+              {/* Saat aralığı */}
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
+                  <label className="text-sm text-[var(--text-secondary)]">Başlangıç saati</label>
+                  <input
+                    type="time"
+                    value={energyNotifStart}
+                    onChange={(e) => setEnergyNotifStart(e.target.value)}
+                    className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-[var(--accent)] transition-colors"
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
+                  <label className="text-sm text-[var(--text-secondary)]">Bitiş saati</label>
+                  <input
+                    type="time"
+                    value={energyNotifEnd}
+                    onChange={(e) => setEnergyNotifEnd(e.target.value)}
+                    className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-[var(--accent)] transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Aralık */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label className="text-sm text-[var(--text-secondary)]">Bildirim aralığı (saniye)</label>
+                <input
+                  type="number"
+                  min={10}
+                  max={86400}
+                  step={1}
+                  value={energyNotifIntervalSec}
+                  onChange={(e) => setEnergyNotifIntervalSec(e.target.value)}
+                  className="bg-[var(--bg-tertiary)] border border-[var(--bg-tertiary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:border-[var(--accent)] transition-colors w-32"
+                />
+                <p className="text-xs text-[var(--text-secondary)]">
+                  Normal kullanım: 3600 (1 saat) — Test: 30
+                </p>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 

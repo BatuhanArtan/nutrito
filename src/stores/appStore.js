@@ -140,6 +140,46 @@ const useAppStore = create(
       geminiUrl: '',
       setGeminiUrl: (url) => set({ geminiUrl: url }),
 
+      // Enerji Logları
+      energyLogs: [],
+      setEnergyLogs: (logs) => set({ energyLogs: logs }),
+
+      addEnergyLog: async (timestamp, level) => {
+        const ts = timestamp || new Date().toISOString()
+        const date = ts.slice(0, 10)
+        const newLog = { id: generateId(), timestamp: ts, date, level, created_at: new Date().toISOString() }
+        set((state) => ({ energyLogs: [...state.energyLogs, newLog] }))
+        if (isSupabaseConfigured()) {
+          const { data, error } = await supabase.from('energy_logs').insert(newLog).select().single()
+          if (error) console.error('Error adding energy log:', error)
+          else set((state) => ({ energyLogs: state.energyLogs.map(l => l.id === newLog.id ? data : l) }))
+        }
+        return newLog
+      },
+
+      deleteEnergyLog: async (id) => {
+        set((state) => ({ energyLogs: state.energyLogs.filter(l => l.id !== id) }))
+        if (isSupabaseConfigured()) {
+          const { error } = await supabase.from('energy_logs').delete().eq('id', id)
+          if (error) console.error('Error deleting energy log:', error)
+        }
+      },
+
+      // Enerji bildirim aralığı (saniye)
+      energyNotifIntervalSec: 30,
+      setEnergyNotifIntervalSec: (sec) => {
+        const val = Math.max(10, Number(sec) || 30)
+        set({ energyNotifIntervalSec: val })
+      },
+
+      // Enerji bildirimleri toggle + saat aralığı
+      energyNotifEnabled: false,
+      setEnergyNotifEnabled: (v) => set({ energyNotifEnabled: v }),
+      energyNotifStart: '09:30',
+      setEnergyNotifStart: (v) => set({ energyNotifStart: v }),
+      energyNotifEnd: '22:30',
+      setEnergyNotifEnd: (v) => set({ energyNotifEnd: v }),
+
       // Loading state
       isLoading: false,
       setIsLoading: (loading) => set({ isLoading: loading }),
@@ -163,7 +203,8 @@ const useAppStore = create(
             { data: dailyMeals },
             { data: mealItems },
             { data: waterLogs },
-            { data: weightLogs }
+            { data: weightLogs },
+            { data: energyLogs }
           ] = await Promise.all([
             supabase.from('units').select('*').order('name'),
             supabase.from('foods').select('*').order('name'),
@@ -173,7 +214,8 @@ const useAppStore = create(
             supabase.from('daily_meals').select('*'),
             supabase.from('meal_items').select('*'),
             supabase.from('water_logs').select('*').order('date', { ascending: false }),
-            supabase.from('weight_logs').select('*').order('date', { ascending: false })
+            supabase.from('weight_logs').select('*').order('date', { ascending: false }),
+            supabase.from('energy_logs').select('*').order('timestamp', { ascending: false })
           ])
 
           // app_settings ayrı çek — tablo yoksa diğer verileri etkilemesin
@@ -213,6 +255,7 @@ const useAppStore = create(
             mealItems: mealItems || [],
             waterLogs: mergedWaterLogs,
             weightLogs: weightLogs || [],
+            energyLogs: energyLogs || [],
             ...(settingsMap.weightTarget !== undefined && { weightTarget: settingsMap.weightTarget }),
             ...(settingsMap.waterTargetDefault !== undefined && { waterTargetDefault: settingsMap.waterTargetDefault }),
             ...(settingsMap.waterGlassVolumeMl !== undefined && { waterGlassVolumeMl: settingsMap.waterGlassVolumeMl })
@@ -865,7 +908,8 @@ const useAppStore = create(
           skippedMeals: {},
           waterTargetDefault: 8,
           waterGlassVolumeMl: 200,
-          weightTarget: null
+          weightTarget: null,
+          energyLogs: []
         })
       }
     }),
@@ -886,7 +930,12 @@ const useAppStore = create(
         waterTargetDefault: state.waterTargetDefault,
         waterGlassVolumeMl: state.waterGlassVolumeMl,
         weightTarget: state.weightTarget,
-        geminiUrl: state.geminiUrl
+        geminiUrl: state.geminiUrl,
+        energyLogs: state.energyLogs,
+        energyNotifIntervalSec: state.energyNotifIntervalSec,
+        energyNotifEnabled: state.energyNotifEnabled,
+        energyNotifStart: state.energyNotifStart,
+        energyNotifEnd: state.energyNotifEnd
       }),
       merge: (persisted, current) => ({
         ...current,
