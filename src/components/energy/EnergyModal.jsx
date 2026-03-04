@@ -51,7 +51,7 @@ export default function EnergyModal({ isOpen, onClose }) {
   const deleteEnergyLog = useAppStore((state) => state.deleteEnergyLog)
 
   const [range, setRange] = useState('today')
-  const [tab, setTab] = useState('chart') // 'chart' | 'history' | 'add'
+  const [tab, setTab] = useState('add') // 'chart' | 'history' | 'add'
   const [addLevel, setAddLevel] = useState(null)
   const [addTime, setAddTime] = useState(() => {
     const now = new Date()
