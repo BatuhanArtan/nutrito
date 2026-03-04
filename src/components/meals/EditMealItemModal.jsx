@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react'
-import { Search, BookOpen } from 'lucide-react'
+import { Search, BookOpen, ArrowLeftRight } from 'lucide-react'
 import useAppStore from '../../stores/appStore'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
 import Input from '../ui/Input'
 import Select from '../ui/Select'
+import ExchangeModal from './ExchangeModal'
 
 export default function EditMealItemModal({ isOpen, onClose, item }) {
   const foods = useAppStore((state) => state.foods)
   const recipes = useAppStore((state) => state.recipes)
   const units = useAppStore((state) => state.units)
   const updateMealItem = useAppStore((state) => state.updateMealItem)
+  const addMealItem = useAppStore((state) => state.addMealItem)
 
   const [quantity, setQuantity] = useState('1')
   const [unitId, setUnitId] = useState('')
@@ -18,6 +20,7 @@ export default function EditMealItemModal({ isOpen, onClose, item }) {
   const [selectedItem, setSelectedItem] = useState(null)
   const [changing, setChanging] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [showExchange, setShowExchange] = useState(false)
 
   useEffect(() => {
     if (!isOpen || !item) return
@@ -61,15 +64,41 @@ export default function EditMealItemModal({ isOpen, onClose, item }) {
     onClose()
   }
 
+  const handleApplyExchange = async (exchange) => {
+    const rightItems = exchange.rightItems || []
+    if (rightItems.length === 0) return
+    const first = rightItems[0]
+    await updateMealItem(item.id, {
+      food_id: first.food?.id || null,
+      recipe_id: null,
+      quantity: first.quantity,
+      unit_id: first.unit?.id || null
+    })
+    for (let i = 1; i < rightItems.length; i++) {
+      const ri = rightItems[i]
+      await addMealItem({
+        daily_meal_id: item.daily_meal_id,
+        food_id: ri.food?.id || null,
+        recipe_id: null,
+        quantity: ri.quantity,
+        unit_id: ri.unit?.id || null
+      })
+    }
+    setShowExchange(false)
+    onClose()
+  }
+
   const handleClose = () => {
     setChanging(false)
     setSearchTerm('')
+    setShowExchange(false)
     onClose()
   }
 
   if (!item) return null
 
   return (
+    <>
     <Modal isOpen={isOpen} onClose={handleClose} title="Besini Düzenle">
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
@@ -191,16 +220,41 @@ export default function EditMealItemModal({ isOpen, onClose, item }) {
 
         {/* Butonlar */}
         {!changing && (
-          <Button
-            type="submit"
-            className="w-full"
-            style={{ paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
-            disabled={!selectedItem || !quantity}
-          >
-            Kaydet
-          </Button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+            <Button
+              type="submit"
+              className="w-full"
+              style={{ paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+              disabled={!selectedItem || !quantity}
+            >
+              Kaydet
+            </Button>
+            {item.food && (
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                style={{ paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
+                onClick={() => setShowExchange(true)}
+              >
+                <ArrowLeftRight size={15} style={{ marginRight: '0.4rem' }} />
+                Değişim Uygula
+              </Button>
+            )}
+          </div>
         )}
       </form>
     </Modal>
+
+    {item.food && (
+      <ExchangeModal
+        isOpen={showExchange}
+        onClose={() => setShowExchange(false)}
+        foodId={item.food.id}
+        foodName={item.food.name}
+        onApplyExchange={handleApplyExchange}
+      />
+    )}
+    </>
   )
 }
