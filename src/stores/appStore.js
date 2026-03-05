@@ -159,6 +159,14 @@ const useAppStore = create(
         return newLog
       },
 
+      updateEnergyLog: async (id, updates) => {
+        set((state) => ({ energyLogs: state.energyLogs.map(l => l.id === id ? { ...l, ...updates } : l) }))
+        if (isSupabaseConfigured()) {
+          const { error } = await supabase.from('energy_logs').update(updates).eq('id', id)
+          if (error) console.error('Error updating energy log:', error)
+        }
+      },
+
       deleteEnergyLog: async (id) => {
         set((state) => ({ energyLogs: state.energyLogs.filter(l => l.id !== id) }))
         if (isSupabaseConfigured()) {

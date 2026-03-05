@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { Trash2, Plus } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { Trash2, Plus, Pencil, Check, X } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer
@@ -48,17 +48,38 @@ function formatChartTime(timestamp, rangeKey) {
 export default function EnergyModal({ isOpen, onClose }) {
   const energyLogs = useAppStore((state) => state.energyLogs)
   const addEnergyLog = useAppStore((state) => state.addEnergyLog)
+  const updateEnergyLog = useAppStore((state) => state.updateEnergyLog)
   const deleteEnergyLog = useAppStore((state) => state.deleteEnergyLog)
 
   const [range, setRange] = useState('today')
   const [tab, setTab] = useState('add') // 'chart' | 'history' | 'add'
   const [addLevel, setAddLevel] = useState(null)
-  const [addTime, setAddTime] = useState(() => {
-    const now = new Date()
-    return now.toTimeString().slice(0, 5)
-  })
-  const [addDate, setAddDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [addTime, setAddTime] = useState('')
+  const [addDate, setAddDate] = useState('')
   const [adding, setAdding] = useState(false)
+
+  const [editingId, setEditingId] = useState(null)
+  const [editDate, setEditDate] = useState('')
+  const [editTime, setEditTime] = useState('')
+  const [editLevel, setEditLevel] = useState(null)
+
+  const getNow = () => {
+    const now = new Date()
+    return {
+      time: now.toTimeString().slice(0, 5),
+      date: now.toISOString().slice(0, 10)
+    }
+  }
+
+  // Modal her açıldığında zamanı güncelle
+  useEffect(() => {
+    if (isOpen) {
+      const { time, date } = getNow()
+      setAddTime(time)
+      setAddDate(date)
+      setAddLevel(null)
+    }
+  }, [isOpen])
 
   const sortedLogs = useMemo(
     () => [...energyLogs].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)),
@@ -87,6 +108,9 @@ export default function EnergyModal({ isOpen, onClose }) {
     const timestamp = new Date(`${addDate}T${addTime}:00`).toISOString()
     await addEnergyLog(timestamp, addLevel)
     setAddLevel(null)
+    const { time, date } = getNow()
+    setAddTime(time)
+    setAddDate(date)
     setTab('chart')
     setAdding(false)
   }
@@ -202,6 +226,76 @@ export default function EnergyModal({ isOpen, onClose }) {
               [...sortedLogs].reverse().map(log => {
                 const lvl = LEVELS.find(l => l.value === log.level)
                 const d = new Date(log.timestamp)
+                const isEditing = editingId === log.id
+
+                if (isEditing) {
+                  return (
+                    <div
+                      key={log.id}
+                      className="bg-[var(--bg-tertiary)] rounded-lg"
+                      style={{ padding: '0.625rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+                    >
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <input
+                          type="date"
+                          value={editDate}
+                          onChange={e => setEditDate(e.target.value)}
+                          className="bg-[var(--bg-primary)] border border-[var(--bg-tertiary)] rounded-lg px-2 py-1 text-sm text-[var(--text-primary)] focus:border-[var(--accent)] transition-colors"
+                          style={{ flex: 1 }}
+                        />
+                        <input
+                          type="time"
+                          value={editTime}
+                          onChange={e => setEditTime(e.target.value)}
+                          className="bg-[var(--bg-primary)] border border-[var(--bg-tertiary)] rounded-lg px-2 py-1 text-sm text-[var(--text-primary)] focus:border-[var(--accent)] transition-colors"
+                          style={{ flex: 1 }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                        {LEVELS.map(l => (
+                          <button
+                            key={l.value}
+                            type="button"
+                            onClick={() => setEditLevel(l.value)}
+                            className="rounded-lg text-sm transition-all"
+                            style={{
+                              padding: '0.25rem 0.625rem',
+                              background: editLevel === l.value ? 'var(--accent)' : 'var(--bg-primary)',
+                              color: editLevel === l.value ? '#fff' : 'var(--text-secondary)',
+                              border: editLevel === l.value ? '1.5px solid var(--accent)' : '1.5px solid transparent',
+                            }}
+                          >
+                            {l.label} {l.desc}
+                          </button>
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.375rem' }}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditingId(null)}
+                        >
+                          <X size={14} className="text-[var(--text-secondary)]" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={async () => {
+                            if (!editDate || !editTime || !editLevel) return
+                            const ts = new Date(`${editDate}T${editTime}:00`).toISOString()
+                            await updateEnergyLog(log.id, { timestamp: ts, level: editLevel })
+                            setEditingId(null)
+                          }}
+                        >
+                          <Check size={14} className="text-green-400" />
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                }
+
                 return (
                   <div
                     key={log.id}
@@ -216,6 +310,19 @@ export default function EnergyModal({ isOpen, onClose }) {
                     </span>
                     <span className="text-base flex-shrink-0">{lvl?.label}</span>
                     <span className="text-sm flex-1" style={{ color: levelColor(log.level) }}>{lvl?.desc}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setEditingId(log.id)
+                        setEditDate(d.toISOString().slice(0, 10))
+                        setEditTime(d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }).replace('.', ':'))
+                        setEditLevel(log.level)
+                      }}
+                    >
+                      <Pencil size={13} className="text-[var(--text-secondary)]" />
+                    </Button>
                     <Button
                       type="button"
                       variant="ghost"
