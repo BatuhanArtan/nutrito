@@ -14,6 +14,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'Nutrito - Diyet Takip',
@@ -42,9 +45,8 @@ export default defineConfig({
           }
         ]
       },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        importScripts: ['sw-energy.js']
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
       }
     })
   ],

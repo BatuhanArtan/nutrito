@@ -300,20 +300,21 @@ export default function EnergyModal({ isOpen, onClose }) {
                   <div
                     key={log.id}
                     className="flex items-center bg-[var(--bg-tertiary)] rounded-lg"
-                    style={{ padding: '0.625rem 0.625rem 0.625rem 0.875rem', gap: '0.5rem' }}
+                    style={{ padding: '0.5rem 0.375rem 0.5rem 0.75rem', gap: '0.375rem' }}
                   >
-                    <span className="text-xs text-[var(--text-secondary)] flex-shrink-0" style={{ width: '5.5rem' }}>
+                    <span className="text-xs text-[var(--text-secondary)] flex-shrink-0" style={{ width: '3.75rem' }}>
                       {d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
                     </span>
-                    <span className="text-xs text-[var(--text-secondary)] flex-shrink-0" style={{ width: '3rem' }}>
+                    <span className="text-xs text-[var(--text-secondary)] flex-shrink-0" style={{ width: '2.75rem' }}>
                       {d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    <span className="text-base flex-shrink-0">{lvl?.label}</span>
-                    <span className="text-sm flex-1" style={{ color: levelColor(log.level) }}>{lvl?.desc}</span>
+                    <span className="text-sm flex-shrink-0">{lvl?.label}</span>
+                    <span className="text-sm flex-1 min-w-0 truncate" style={{ color: levelColor(log.level) }}>{lvl?.desc}</span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
+                      className="!p-1.5 flex-shrink-0"
                       onClick={() => {
                         setEditingId(log.id)
                         setEditDate(d.toISOString().slice(0, 10))
@@ -327,6 +328,7 @@ export default function EnergyModal({ isOpen, onClose }) {
                       type="button"
                       variant="ghost"
                       size="icon"
+                      className="!p-1.5 flex-shrink-0"
                       onClick={() => deleteEnergyLog(log.id)}
                     >
                       <Trash2 size={13} className="text-red-400" />

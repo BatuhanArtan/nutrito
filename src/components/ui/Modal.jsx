@@ -52,7 +52,7 @@ export default function Modal({
         {/* Header */}
         <div
           className="flex items-center justify-between border-b border-[var(--bg-tertiary)] shrink-0"
-          style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem', paddingTop: '1.5rem', paddingBottom: '1.5rem' }}
+          style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '1.25rem', paddingBottom: '1.25rem' }}
         >
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
           {showCloseButton && (
@@ -65,7 +65,7 @@ export default function Modal({
         {/* Content */}
         <div
           className="overflow-y-auto flex-1 min-h-0"
-          style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem', paddingTop: '1.75rem', paddingBottom: '2.5rem' }}
+          style={{ paddingLeft: '1.25rem', paddingRight: '1.25rem', paddingTop: '1.25rem', paddingBottom: '1.75rem' }}
         >
           {children}
         </div>

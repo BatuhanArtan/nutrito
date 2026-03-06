@@ -1,24 +1,29 @@
-// Energy notification handler — workbox tarafından generated SW'ye importScripts ile dahil edilir
+import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
+
+cleanupOutdatedCaches()
+precacheAndRoute(self.__WB_MANIFEST)
 
 const energyChannel = new BroadcastChannel('energy-channel')
 
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SHOW_ENERGY_NOTIFICATION') {
-    self.registration.showNotification('Enerji Seviyeni Nasıl?', {
-      body: 'Şu anki enerji seviyeni seç',
-      icon: '/nutrito/pwa-192x192.png',
-      badge: '/nutrito/pwa-192x192.png',
-      tag: 'energy-check',
-      renotify: true,
-      requireInteraction: false,
-      actions: [
-        { action: '1', title: '😴 1' },
-        { action: '2', title: '😟 2' },
-        { action: '3', title: '😐 3' },
-        { action: '4', title: '🙂 4' },
-        { action: '5', title: '⚡ 5' }
-      ]
-    })
+    event.waitUntil(
+      self.registration.showNotification('Enerji Seviyeni Nasıl?', {
+        body: 'Şu anki enerji seviyeni seç',
+        icon: '/nutrito/pwa-192x192.png',
+        badge: '/nutrito/pwa-192x192.png',
+        tag: 'energy-check',
+        renotify: true,
+        requireInteraction: false,
+        actions: [
+          { action: '1', title: '😴 1' },
+          { action: '2', title: '😟 2' },
+          { action: '3', title: '😐 3' },
+          { action: '4', title: '🙂 4' },
+          { action: '5', title: '⚡ 5' }
+        ]
+      })
+    )
   }
 })
 
